@@ -34,10 +34,10 @@ const defaultFeatures = {
 };
 
 interface FeatureItem {
-  id: number;
-  icon: string;
-  title: string;
-  description: string;
+  id?: number;
+  icon?: string;
+  title?: string;
+  description?: string;
 }
 
 interface FeaturesData {
@@ -51,9 +51,17 @@ interface ServicesFeaturesProps {
 }
 
 const ServicesFeatures = ({ data }: ServicesFeaturesProps) => {
-  // Use provided data or fallback to defaults
-  const featuresData = data || defaultFeatures;
-  const items = featuresData.items || defaultFeatures.items;
+  const featuresData = {
+    subtitle: data?.subtitle || defaultFeatures.subtitle,
+    title: data?.title || defaultFeatures.title,
+    items: data?.items && data.items.length > 0 ? data.items : defaultFeatures.items,
+  };
+  const items = featuresData.items.map((feature, i) => ({
+    id: feature.id || i,
+    icon: feature.icon || "icon-clipping",
+    title: feature.title || `Feature ${i + 1}`,
+    description: feature.description || "No description available.",
+  }));
 
   return (
     <section className="section features bg-grey">
@@ -79,7 +87,7 @@ const ServicesFeatures = ({ data }: ServicesFeaturesProps) => {
               className="col-12 col-md-6 col-lg-3"
               data-aos="fade-up"
               data-aos-duration="600"
-              data-aos-delay={100 + (feature.id * 50)}
+              data-aos-delay={100 + (feature.id || 0) * 50}
             >
               <div className="feature-card">
                 <div className="feature-card__icon">

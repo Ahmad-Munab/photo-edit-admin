@@ -5,18 +5,18 @@ import {
 } from "react-compare-slider";
 
 interface Category {
-  id: number;
-  name: string;
-  filter: string;
+  id?: number;
+  name?: string;
+  filter?: string;
 }
 
 interface PortfolioItem {
-  id: number;
-  category: string;
-  beforeImage: string;
-  afterImage: string;
-  title: string;
-  description: string;
+  id?: number;
+  category?: string;
+  beforeImage?: string;
+  afterImage?: string;
+  title?: string;
+  description?: string;
 }
 
 interface PortfolioMainProps {
@@ -26,61 +26,90 @@ interface PortfolioMainProps {
   };
   categories?: Category[];
   items?: PortfolioItem[];
+  portfolioImageUrls?: string[];
 }
 
-const PortfolioMain = ({ data, categories, items }: PortfolioMainProps) => {
+const PortfolioMain = ({
+  data,
+  categories,
+  items,
+  portfolioImageUrls,
+}: PortfolioMainProps) => {
   const [activeFilter, setActiveFilter] = useState("*");
 
   // Default categories if none provided
   const defaultCategories = [
-    { id: 1, name: 'All', filter: '*' },
-    { id: 2, name: 'Photo Retouch', filter: '.retouch' },
-    { id: 3, name: 'Background Remove', filter: '.background' },
-    { id: 4, name: 'Clipping Path', filter: '.path' },
-    { id: 5, name: 'Color Correction', filter: '.color' },
-    { id: 6, name: 'Drop Shadow', filter: '.drop' },
-    { id: 7, name: 'E-commerce Image', filter: '.ecommerce' }
+    { id: 1, name: "All", filter: "*" },
+    { id: 2, name: "Photo Retouch", filter: ".retouch" },
+    { id: 3, name: "Background Remove", filter: ".background" },
+    { id: 4, name: "Clipping Path", filter: ".path" },
+    { id: 5, name: "Color Correction", filter: ".color" },
+    { id: 6, name: "Drop Shadow", filter: ".drop" },
+    { id: 7, name: "E-commerce Image", filter: ".ecommerce" },
   ];
 
   // Default items if none provided
   const defaultItems = [
     {
       id: 1,
-      category: 'retouch',
-      beforeImage: '/images/after/one-before.png',
-      afterImage: '/images/after/one-after.png',
-      title: 'Photo Retouch Example',
-      description: 'Professional photo retouching service'
+      category: "retouch",
+      beforeImage: "/images/placeholder.png",
+      afterImage: "/images/placeholder.png",
+      title: "Photo Retouch Example",
+      description: "Professional photo retouching service",
     },
     {
       id: 2,
-      category: 'background',
-      beforeImage: '/images/after/two-before.png',
-      afterImage: '/images/after/two-after.png',
-      title: 'Background Removal Example',
-      description: 'Clean background removal service'
+      category: "background",
+      beforeImage: "/images/placeholder.png",
+      afterImage: "/images/placeholder.png",
+      title: "Background Removal Example",
+      description: "Clean background removal service",
     },
     {
       id: 3,
-      category: 'path',
-      beforeImage: '/images/after/three-before.png',
-      afterImage: '/images/after/three-after.png',
-      title: 'Clipping Path Example',
-      description: 'Precise clipping path service'
+      category: "path",
+      beforeImage: "/images/placeholder.png",
+      afterImage: "/images/placeholder.png",
+      title: "Clipping Path Example",
+      description: "Precise clipping path service",
     },
     {
       id: 4,
-      category: 'color',
-      beforeImage: '/images/after/four-before.png',
-      afterImage: '/images/after/four-after.png',
-      title: 'Color Correction Example',
-      description: 'Professional color correction service'
-    }
+      category: "color",
+      beforeImage: "/images/placeholder.png",
+      afterImage: "/images/placeholder.png",
+      title: "Color Correction Example",
+      description: "Professional color correction service",
+    },
   ];
 
   // Use provided data or defaults
-  const displayCategories = data?.categories || categories || defaultCategories;
-  const displayItems = data?.items || items || defaultItems;
+  const displayCategories = (
+    data?.categories && data.categories.length > 0
+      ? data.categories
+      : categories && categories.length > 0
+      ? categories
+      : defaultCategories
+  ).map((cat, i) => ({
+    id: cat.id || i,
+    name: cat.name || `Category ${i + 1}`,
+    filter: cat.filter || "*",
+  }));
+  const displayItems = (
+    data?.items && data.items.length > 0
+      ? data.items
+      : items && items.length > 0
+      ? items
+      : defaultItems
+  ).map((item, i) => ({
+    id: item.id || i,
+    category: item.category || "retouch",
+    beforeImage: item.beforeImage || "/images/placeholder.png",
+    afterImage: item.afterImage || "/images/placeholder.png",
+    title: item.title || `Portfolio ${i + 1}`,
+    description: item.description || "No description available.",
+  }));
 
   const handleTabClick = (filter: string) => {
     setActiveFilter(filter);
@@ -121,7 +150,7 @@ const PortfolioMain = ({ data, categories, items }: PortfolioMainProps) => {
                   key={category.id}
                   aria-label="Filter Items"
                   className={activeFilter === category.filter ? "active" : ""}
-                  onClick={() => handleTabClick(category.filter)}
+                  onClick={() => handleTabClick(category.filter || "*")}
                 >
                   {category.name}
                 </button>
@@ -160,11 +189,20 @@ const PortfolioMain = ({ data, categories, items }: PortfolioMainProps) => {
                   <div className="portfolio__item-info">
                     <h4 className="portfolio__item-title">{item.title}</h4>
                     {item.description && (
-                      <p className="portfolio__item-description">{item.description}</p>
+                      <p className="portfolio__item-description">
+                        {item.description}
+                      </p>
                     )}
                   </div>
                 )}
               </div>
+            </div>
+          ))}
+        </div>
+        <div className="row">
+          {(portfolioImageUrls || []).map((url, idx) => (
+            <div key={idx} className="col-12 col-md-6">
+              <img src={url} alt={`Portfolio ${idx + 1}`} />
             </div>
           ))}
         </div>

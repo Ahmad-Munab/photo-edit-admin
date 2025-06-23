@@ -92,6 +92,7 @@ const Services = ({ servicesData = {}, settings = {} }: ServicesProps) => {
       <ServicesMain
         data={typedServicesData.main}
         services={typedServicesData.services}
+        servicesImageUrls={[]}
       />
       <ServicesFeatures data={typedServicesData.features} />
       <ServicesTestimonials data={typedServicesData.testimonials} />

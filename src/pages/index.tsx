@@ -129,16 +129,17 @@ const Home = ({
     <Layout settings={settings}>
       <HomeOneBanner data={typedHomeData.banner} />
       <Services data={typedHomeData.services} />
-      <AboutSec data={typedHomeData.about} />
+      <AboutSec data={typedHomeData.about} aboutImageUrl="" />
       <ChooseSec data={typedHomeData.whySpecial} />
       <QualitySec data={typedHomeData.trickyBackgrounds} />
       <TestimonialSec data={typedHomeData.testimonials} />
-      <PricingPlan data={typedHomeData.pricing} />
+      <PricingPlan data={typedHomeData.pricing} pricingImageUrls={[]} />
       <NewsSec
         data={typedHomeData.news}
         newsItems={newsData.news?.slice(0, 3)}
+        newsImageUrls={[]}
       />
-      <CTA data={typedHomeData.cta} />
+      <CTA data={typedHomeData.cta} ctaImageUrl="" />
       <SponsorSlider data={typedHomeData.sponsors} />
     </Layout>
   );

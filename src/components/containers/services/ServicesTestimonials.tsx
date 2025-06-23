@@ -4,11 +4,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import authorOne from "public/images/testimonial/author-one.png";
-import authorTwo from "public/images/testimonial/author-two.png";
-import authorThree from "public/images/testimonial/author-three.png";
 
-// Default testimonials data for fallback
+const PLACEHOLDER_IMAGE = "/images/placeholder.png";
 const defaultTestimonials = {
   subtitle: "testimonials",
   title: "What Our Clients Say",
@@ -17,7 +14,7 @@ const defaultTestimonials = {
       id: 1,
       name: "Kathryn Murphy",
       position: "CEO, Founder",
-      image: authorOne,
+      image: PLACEHOLDER_IMAGE,
       rating: 5,
       text: "Photodit is a fantastic service for anyone looking to enhance their product photography. The team is professional, responsive, and delivers high-quality results consistently.",
     },
@@ -25,7 +22,7 @@ const defaultTestimonials = {
       id: 2,
       name: "Leslie Alexander",
       position: "Marketing Director",
-      image: authorTwo,
+      image: PLACEHOLDER_IMAGE,
       rating: 5,
       text: "I've been using Photodit for all my e-commerce product images, and the results have been outstanding. Their attention to detail and quick turnaround time have helped me improve my online store significantly.",
     },
@@ -33,7 +30,7 @@ const defaultTestimonials = {
       id: 3,
       name: "Jenny Wilson",
       position: "Product Manager",
-      image: authorThree,
+      image: PLACEHOLDER_IMAGE,
       rating: 5,
       text: "The team at Photodit has been instrumental in helping us maintain a consistent look across all our product images. Their clipping path service is precise and their customer service is excellent.",
     },
@@ -41,12 +38,12 @@ const defaultTestimonials = {
 };
 
 interface TestimonialItem {
-  id: number;
-  name: string;
-  position: string;
-  image: string;
-  rating: number;
-  text: string;
+  id?: number;
+  name?: string;
+  position?: string;
+  image?: string;
+  rating?: number;
+  text?: string;
 }
 
 interface TestimonialsData {
@@ -60,9 +57,19 @@ interface ServicesTestimonialsProps {
 }
 
 const ServicesTestimonials = ({ data }: ServicesTestimonialsProps) => {
-  // Use provided data or fallback to defaults
-  const testimonialData = data || defaultTestimonials;
-  const items = testimonialData.items || defaultTestimonials.items;
+  const testimonialData = {
+    subtitle: data?.subtitle || defaultTestimonials.subtitle,
+    title: data?.title || defaultTestimonials.title,
+    items: data?.items && data.items.length > 0 ? data.items : defaultTestimonials.items,
+  };
+  const items = testimonialData.items.map((testimonial, i) => ({
+    id: testimonial.id || i,
+    name: testimonial.name || `Client ${i + 1}`,
+    position: testimonial.position || "Customer",
+    image: testimonial.image || PLACEHOLDER_IMAGE,
+    rating: typeof testimonial.rating === "number" ? testimonial.rating : 5,
+    text: testimonial.text || "No testimonial provided.",
+  }));
 
   // Function to render star ratings
   const renderStars = (rating: number) => {

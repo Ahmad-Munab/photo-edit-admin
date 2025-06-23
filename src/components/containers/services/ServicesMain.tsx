@@ -2,12 +2,46 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+const PLACEHOLDER_IMAGE = "/images/placeholder.png";
+const DEFAULT_SERVICES = [
+  {
+    id: 1,
+    title: "Clipping Path",
+    image: PLACEHOLDER_IMAGE,
+    price: "$0.39 Only",
+    description:
+      "Our clipping path service precisely outlines and isolates objects in your images, allowing for clean background removal and replacement.",
+    link: "service-details",
+    className: "on",
+  },
+  {
+    id: 2,
+    title: "Background Removal",
+    image: PLACEHOLDER_IMAGE,
+    price: "$0.39 Only",
+    description:
+      "We can remove any background from your product images, replacing it with white, transparent, or any color of your choice.",
+    link: "service-details",
+    className: "fi",
+  },
+  {
+    id: 3,
+    title: "Image Masking",
+    image: PLACEHOLDER_IMAGE,
+    price: "$0.39 Only",
+    description:
+      "Perfect for complex edges like hair or fur, our image masking service preserves fine details while removing backgrounds.",
+    link: "service-details",
+    className: "tw",
+  },
+];
+
 interface ServiceItem {
-  id: number;
-  title: string;
-  image: string;
-  price: string;
-  description: string;
+  id?: number;
+  title?: string;
+  image?: string;
+  price?: string;
+  description?: string;
   link?: string;
   className?: string;
 }
@@ -21,18 +55,33 @@ interface ServicesMainData {
 interface ServicesMainProps {
   data?: ServicesMainData;
   services?: ServiceItem[];
+  servicesImageUrls?: string[];
 }
 
-const ServicesMain = ({ data, services = [] }: ServicesMainProps) => {
-  // Use provided data or fallback to defaults
-  const mainData = data || {
-    subtitle: "our services",
-    title: "We're Good at Best Clipping Path Service",
+const ServicesMain = ({
+  data,
+  services = [],
+  servicesImageUrls,
+}: ServicesMainProps) => {
+  const mainData = {
+    subtitle: data?.subtitle || "our services",
+    title: data?.title || "We're Good at Best Clipping Path Service",
     description:
+      data?.description ||
       "We provide high-quality photo editing services tailored to your specific needs. Our team of expert editors ensures that every image is processed with precision and care.",
   };
 
-  const serviceItems = services;
+  const serviceItems = (
+    services && services.length > 0 ? services : DEFAULT_SERVICES
+  ).map((service, i) => ({
+    id: service.id || i,
+    title: service.title || `Service ${i + 1}`,
+    image: service.image || PLACEHOLDER_IMAGE,
+    price: service.price || "$0.39 Only",
+    description: service.description || "No description available.",
+    link: service.link || "service-details",
+    className: service.className || "on",
+  }));
 
   return (
     <section className="section services-main">
@@ -59,11 +108,11 @@ const ServicesMain = ({ data, services = [] }: ServicesMainProps) => {
               className="col-12 col-md-6 col-lg-4"
               data-aos="fade-up"
               data-aos-duration="600"
-              data-aos-delay={100 + service.id * 50}
+              data-aos-delay={100 + (service.id || 0) * 50}
             >
               <div
                 id={service.link?.replace("#", "") || ""}
-                className={`service-card ${service.className || ""}`}
+                className={`service-card ${service.className || "on"}`}
               >
                 <div className="service-card__img">
                   <Image
@@ -84,14 +133,25 @@ const ServicesMain = ({ data, services = [] }: ServicesMainProps) => {
                       Starting at <span>{service.price}</span>
                     </p>
                   </div>
-                  <Link
-                    href={service.link || "#"}
-                    className="service-card__link"
-                  >
+                  <Link href={service.link} className="service-card__link">
                     Learn More <i className="fa-solid fa-arrow-right"></i>
                   </Link>
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="row g-4 mt-3">
+          {(servicesImageUrls || []).map((url, idx) => (
+            <div
+              key={idx}
+              className="col-12 col-md-6 col-lg-4"
+              data-aos="fade-up"
+              data-aos-duration="600"
+              data-aos-delay={100 + (idx + 1) * 50}
+            >
+              <img src={url} alt={`Service ${idx + 1}`} className="img-fluid" />
             </div>
           ))}
         </div>

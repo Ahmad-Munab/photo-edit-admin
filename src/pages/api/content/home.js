@@ -1,264 +1,5 @@
 import { getData, saveData } from "@/utils/dataUtils";
-
-// Default data for the home page
-const defaultHomeData = {
-  banner: {
-    subtitle: "Welcome to Photodit",
-    title: "Professional Photo Editing Service",
-    images: {
-      main: "/images/banner/thumb.png",
-      after: "/images/banner/after.png",
-      smallImages: [
-        "/images/banner/one.png",
-        "/images/banner/two.png",
-        "/images/banner/three.png",
-        "/images/banner/four.png",
-      ],
-    },
-  },
-  services: {
-    subtitle: "Our Services",
-    title: "What We Offer",
-    services: [
-      {
-        id: 1,
-        title: "Clipping Path",
-        description: "Remove backgrounds from images",
-        icon: "icon-clipping",
-        link: "/services/clipping-path",
-      },
-      {
-        id: 2,
-        title: "Image Masking",
-        description: "Perfect for complex edges and hair",
-        icon: "icon-masking",
-        link: "/services/image-masking",
-      },
-      {
-        id: 3,
-        title: "Photo Retouching",
-        description: "Enhance and perfect your images",
-        icon: "icon-retouching",
-        link: "/services/photo-retouching",
-      },
-    ],
-  },
-  about: {
-    subtitle: "About Us",
-    title: "Professional Photo Editing Service",
-    description:
-      "We provide high-quality photo editing services for businesses and individuals.",
-    additionalText:
-      "Our team of experienced editors can handle any photo editing task.",
-    priceTag: "Starting at $0.39 per image",
-    buttons: [
-      {
-        text: "Get Started",
-        link: "get-quote",
-        type: "primary",
-      },
-      {
-        text: "Learn More",
-        link: "about",
-        type: "secondary",
-      },
-    ],
-    image: "/images/about/thumb.png",
-  },
-  whySpecial: {
-    subtitle: "why choose us",
-    title: "why we are special",
-    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    features: [
-      {
-        id: 1,
-        title: "Automatic & Quick Results",
-        description: "Clipping Path Could be a process by which photo editor",
-        icon: "/images/choose/icon-one.png",
-      },
-      {
-        id: 2,
-        title: "Increase Resolution",
-        description: "Clipping Path Could be a process by which photo editor",
-        icon: "/images/choose/icon-two.png",
-      },
-      {
-        id: 3,
-        title: "Retain Details",
-        description: "Clipping Path Could be a process by which photo editor",
-        icon: "/images/choose/icon-three.png",
-      },
-    ],
-  },
-  trickyBackgrounds: {
-    subtitle: "Stunning Quality",
-    title: "We've removed these tricky backgrounds",
-    categories: [
-      {
-        id: 1,
-        name: "people",
-        icon: "icon-user",
-        beforeAfterImages: [
-          {
-            before: "/images/after/one-before.png",
-            after: "/images/after/one-after.png",
-          },
-        ],
-      },
-      {
-        id: 2,
-        name: "products",
-        icon: "icon-hexagon",
-        beforeAfterImages: [
-          {
-            before: "/images/after/two-before.png",
-            after: "/images/after/two-after.png",
-          },
-        ],
-      },
-      {
-        id: 3,
-        name: "animals",
-        icon: "icon-animal",
-        beforeAfterImages: [
-          {
-            before: "/images/after/three-before.png",
-            after: "/images/after/three-after.png",
-          },
-        ],
-      },
-      {
-        id: 4,
-        name: "cars",
-        icon: "icon-car",
-        beforeAfterImages: [
-          {
-            before: "/images/after/four-before.png",
-            after: "/images/after/four-after.png",
-          },
-        ],
-      },
-      {
-        id: 5,
-        name: "graphics",
-        icon: "icon-image",
-        beforeAfterImages: [
-          {
-            before: "/images/after/one-before.png",
-            after: "/images/after/one-after.png",
-          },
-        ],
-      },
-    ],
-    decorativeImages: {
-      one: "/images/quality/thumb-one.png",
-      two: "/images/quality/thumb-two.png",
-    },
-  },
-  testimonials: {
-    subtitle: "Testimonials",
-    title: "What Our Clients Say",
-    items: [
-      {
-        id: 1,
-        name: "John Doe",
-        position: "Photographer",
-        image: "/images/testimonial/one.png",
-        rating: 5,
-        text: "Photodit has been a game-changer for my photography business. Their clipping path service is top-notch!",
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        position: "E-commerce Manager",
-        image: "/images/testimonial/two.png",
-        rating: 5,
-        text: "We've been using Photodit for all our product photos. The quality and turnaround time are excellent.",
-      },
-      {
-        id: 3,
-        name: "Mike Johnson",
-        position: "Marketing Director",
-        image: "/images/testimonial/three.png",
-        rating: 4,
-        text: "Photodit has helped us maintain consistent image quality across all our marketing materials.",
-      },
-    ],
-  },
-  pricing: {
-    subtitle: "Pricing Plans",
-    title: "Choose the Right Plan for You",
-    plans: [
-      {
-        id: 1,
-        name: "Basic",
-        price: "$0.39",
-        unit: "per image",
-        description: "Perfect for small businesses",
-        features: [
-          "Clipping Path",
-          "24-hour turnaround",
-          "Unlimited revisions",
-          "Money-back guarantee",
-        ],
-        recommended: false,
-      },
-      {
-        id: 2,
-        name: "Pro",
-        price: "$0.79",
-        unit: "per image",
-        description: "Ideal for growing businesses",
-        features: [
-          "Clipping Path",
-          "Image Masking",
-          "Shadow Creation",
-          "12-hour turnaround",
-          "Unlimited revisions",
-          "Money-back guarantee",
-        ],
-        recommended: true,
-      },
-      {
-        id: 3,
-        name: "Enterprise",
-        price: "$1.29",
-        unit: "per image",
-        description: "For high-volume needs",
-        features: [
-          "All Pro features",
-          "Photo Retouching",
-          "Color Correction",
-          "6-hour turnaround",
-          "Dedicated account manager",
-          "API integration",
-        ],
-        recommended: false,
-      },
-    ],
-  },
-  news: {
-    subtitle: "Latest News",
-    title: "Stay Updated with Photodit",
-  },
-  cta: {
-    subtitle: "Ready to Get Started?",
-    title: "Transform Your Images Today",
-    description:
-      "Join thousands of satisfied customers who trust Photodit for their photo editing needs.",
-    image: "/images/cta/thumb.png",
-  },
-  sponsors: {
-    title: "Trusted by Leading Brands",
-    logos: [
-      "/images/sponsor/one.png",
-      "/images/sponsor/two.png",
-      "/images/sponsor/three.png",
-      "/images/sponsor/four.png",
-      "/images/sponsor/five.png",
-    ],
-  },
-};
+import { defaultHomeData, deepMerge } from "@/utils/defaultData";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
@@ -267,6 +8,8 @@ export default async function handler(req, res) {
       if (!data || Object.keys(data).length === 0) {
         await saveData("home", defaultHomeData);
         data = { ...defaultHomeData };
+      } else {
+        data = deepMerge(defaultHomeData, data);
       }
       const { section } = req.query;
       if (section) {
@@ -301,27 +44,29 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: "Internal server error" });
     }
   }
+
   if (req.method === "PUT") {
     try {
       const { section } = req.query;
       const updatedData = req.body;
+      let data = (await getData("home")) || {};
+      data = deepMerge(defaultHomeData, data);
       if (section) {
-        // Update only the specified section
-        let data = (await getData("home")) || {};
-        data[section] = updatedData;
-        const success = await saveData("home", data);
-        if (!success) {
-          return res.status(500).json({ message: "Failed to save home data" });
-        }
-        return res.status(200).json({ message: `Home section '${section}' updated successfully`, data: data[section] });
+        data = {
+          ...data,
+          [section]: deepMerge(defaultHomeData[section] || {}, updatedData),
+        };
       } else {
-        // Update the entire home object
-        const success = await saveData("home", updatedData);
-        if (!success) {
-          return res.status(500).json({ message: "Failed to save home data" });
-        }
-        return res.status(200).json({ message: "Home data updated successfully", data: updatedData });
+        data = deepMerge(defaultHomeData, updatedData);
       }
+      const success = await saveData("home", data);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to save home data" });
+      }
+      return res.status(200).json({
+        message: "Home data updated successfully",
+        data: section ? data[section] : data,
+      });
     } catch (error) {
       console.error("Error updating home data:", error);
       return res.status(500).json({ message: "Internal server error" });

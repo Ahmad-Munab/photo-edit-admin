@@ -3,12 +3,9 @@ import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import "swiper/swiper-bundle.css";
-import authorone from "public/images/testimonial/author-one.png";
-import authortwo from "public/images/testimonial/author-two.png";
-import authorthree from "public/images/testimonial/author-three.png";
-import mc from "public/images/mc.png";
 
 interface TestimonialSecProps {
+  testimonialImageUrls?: string[];
   data?: {
     subtitle?: string;
     title?: string;
@@ -23,7 +20,10 @@ interface TestimonialSecProps {
   };
 }
 
-const TestimonialSec = ({ data }: TestimonialSecProps) => {
+const TestimonialSec = ({
+  testimonialImageUrls,
+  data,
+}: TestimonialSecProps) => {
   // Default data
   const defaultData = {
     subtitle: "customer testimonial",
@@ -34,7 +34,7 @@ const TestimonialSec = ({ data }: TestimonialSecProps) => {
         id: 1,
         name: "Delores Olivo",
         position: "Senior Technology Editor",
-        image: authorone,
+        image: "https://example.com/author-one.png",
         rating: 5,
         text: "Welcome to our digital agency We specialize in helping business most like yours succeed online. From website design and development to digital marketing agency",
       },
@@ -42,7 +42,7 @@ const TestimonialSec = ({ data }: TestimonialSecProps) => {
         id: 2,
         name: "Endru Kolins",
         position: "CEO",
-        image: authortwo,
+        image: "https://example.com/author-two.png",
         rating: 5,
         text: "Welcome to our digital agency We specialize in helping business most like yours succeed online. From website design and development to digital marketing agency",
       },
@@ -50,7 +50,7 @@ const TestimonialSec = ({ data }: TestimonialSecProps) => {
         id: 3,
         name: "Delores Olivo",
         position: "Content & Marketing Coordinator",
-        image: authorthree,
+        image: "https://example.com/author-three.png",
         rating: 5,
         text: "Welcome to our digital agency We specialize in helping business most like yours succeed online. From website design and development to digital marketing agency",
       },

@@ -1,8 +1,6 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import star from "public/images/pricing/star.png";
-import starhover from "public/images/pricing/star-hover.png";
 
 interface PricingPlan {
   id: number;
@@ -23,9 +21,10 @@ interface PricingMainData {
 
 interface PricingMainProps {
   data: PricingMainData;
+  pricingImageUrls?: string[];
 }
 
-const PricingMain = ({ data }: PricingMainProps) => {
+const PricingMain = ({ data, pricingImageUrls }: PricingMainProps) => {
   const plans = data.plans;
   return (
     <section className="section pricing-main">
@@ -117,8 +116,9 @@ const PricingMain = ({ data }: PricingMainProps) => {
                     </Link>
                   </div>
                   <div className="anime">
-                    <Image src={star} alt="Decoration" />
-                    <Image src={starhover} alt="Decoration" />
+                    {(pricingImageUrls || []).map((url, idx) => (
+                      <img key={idx} src={url} alt={`Pricing ${idx + 1}`} />
+                    ))}
                   </div>
                 </div>
               </div>

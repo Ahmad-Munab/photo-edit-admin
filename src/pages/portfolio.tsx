@@ -33,7 +33,7 @@ const Portfolio = ({ portfolioData, settings }: PortfolioProps) => {
         image={portfolioData?.banner?.image}
         breadcrumbs={portfolioData?.banner?.breadcrumbs}
       />
-      <PortfolioMain data={portfolioData} />
+      <PortfolioMain data={portfolioData} portfolioImageUrls={[]} />
       <PortfolioPopup data={portfolioData?.video} />
       <PortfolioSponsorSlider data={portfolioData?.sponsors} />
     </Layout>

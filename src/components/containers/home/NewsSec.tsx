@@ -5,79 +5,89 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/swiper-bundle.css";
 
+const PLACEHOLDER_IMAGE = "/images/placeholder.png";
+
 interface NewsSecProps {
   data?: {
     subtitle?: string;
     title?: string;
   };
   newsItems?: {
-    id: number;
-    title: string;
-    slug: string;
-    excerpt: string;
-    content: string;
-    image: string;
-    category: string;
-    date: string;
-    author: string;
+    id?: number;
+    title?: string;
+    slug?: string;
+    excerpt?: string;
+    content?: string;
+    image?: string;
+    category?: string;
+    date?: string;
+    author?: string;
   }[];
+  newsImageUrls?: string[];
 }
 
-const NewsSec = ({ data, newsItems = [] }: NewsSecProps) => {
-  // Default data
+const defaultNewsItems = [
+  {
+    id: 1,
+    title: "Easy Tips on Creating an Online New Year's Vision Board",
+    slug: "blog-single",
+    excerpt:
+      "Welcome to our digital agency We specialize in helping business most like yours succeed online.",
+    content: "",
+    image: PLACEHOLDER_IMAGE,
+    category: "Shadow",
+    date: "21 JAN",
+    author: "",
+  },
+  {
+    id: 2,
+    title: "Personal touch that's way more heartfelt than a gift shop",
+    slug: "blog-single",
+    excerpt:
+      "Welcome to our digital agency We specialize in helping business most like yours succeed online.",
+    content: "",
+    image: PLACEHOLDER_IMAGE,
+    category: "Shadow",
+    date: "21 JAN",
+    author: "",
+  },
+  {
+    id: 3,
+    title: "Power of a great photo backdrop — in just a few steps",
+    slug: "blog-single",
+    excerpt:
+      "Welcome to our digital agency We specialize in helping business most like yours succeed online.",
+    content: "",
+    image: PLACEHOLDER_IMAGE,
+    category: "Shadow",
+    date: "21 JAN",
+    author: "",
+  },
+];
+
+const NewsSec = ({ data, newsItems = [], newsImageUrls }: NewsSecProps) => {
   const defaultData = {
     subtitle: "latest news",
-    title: "news form photodit",
+    title: "news from photodit",
   };
-
-  // Default news items
-  const defaultNewsItems = [
-    {
-      id: 1,
-      title: "Easy Tips on Creating an Online New Year's Vision Board",
-      slug: "blog-single",
-      excerpt:
-        "Welcome to our digital agency We specialize in helping business most like yours succeed online.",
-      content: "",
-      image: "/images/news/one.png",
-      category: "Shadow",
-      date: "21 JAN",
-      author: "",
-    },
-    {
-      id: 2,
-      title: "Personal touch that's way more heartfelt than a gift shop",
-      slug: "blog-single",
-      excerpt:
-        "Welcome to our digital agency We specialize in helping business most like yours succeed online.",
-      content: "",
-      image: "/images/news/two.png",
-      category: "Shadow",
-      date: "21 JAN",
-      author: "",
-    },
-    {
-      id: 3,
-      title: "Power of a great photo backdrop — in just a few steps",
-      slug: "blog-single",
-      excerpt:
-        "Welcome to our digital agency We specialize in helping business most like yours succeed online.",
-      content: "",
-      image: "/images/news/three.png",
-      category: "Shadow",
-      date: "21 JAN",
-      author: "",
-    },
-  ];
-
-  // Merge with default data
   const newsData = {
     ...defaultData,
     ...data,
   };
-
-  // Use provided news items or default ones
-  const items = newsItems.length > 0 ? newsItems : defaultNewsItems;
+  const items = (
+    newsItems && newsItems.length > 0 ? newsItems : defaultNewsItems
+  ).map((item, index) => ({
+    ...item,
+    title: item.title || `News ${index + 1}`,
+    slug: item.slug || "blog-single",
+    excerpt:
+      item.excerpt ||
+      "Welcome to our digital agency We specialize in helping business most like yours succeed online.",
+    image: item.image || PLACEHOLDER_IMAGE,
+    category: item.category || "General",
+    date: item.date || "21 JAN",
+    author: item.author || "",
+  }));
   return (
     <section className="section news-section">
       <div className="container">
@@ -142,7 +152,7 @@ const NewsSec = ({ data, newsItems = [] }: NewsSecProps) => {
                   <SwiperSlide key={item.id || index}>
                     <div className="news__slider-item">
                       <div className="thumb">
-                        <Link href={item.slug || "blog-single"}>
+                        <Link href={item.slug}>
                           <Image
                             src={item.image}
                             priority
@@ -158,17 +168,13 @@ const NewsSec = ({ data, newsItems = [] }: NewsSecProps) => {
                       </div>
                       <div className="content">
                         <div className="tag">
-                          <Link href={item.slug || "blog-single"}>
-                            {item.category}
-                          </Link>
+                          <Link href={item.slug}>{item.category}</Link>
                         </div>
                         <h4 className="h4">
-                          <Link href={item.slug || "blog-single"}>
-                            {item.title}
-                          </Link>
+                          <Link href={item.slug}>{item.title}</Link>
                         </h4>
                         <div className="cta">
-                          <Link href={item.slug || "blog-single"}>
+                          <Link href={item.slug}>
                             <i className="icon-arrow-top"></i>
                           </Link>
                         </div>

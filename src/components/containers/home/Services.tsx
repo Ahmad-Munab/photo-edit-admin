@@ -5,12 +5,13 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/swiper-bundle.css";
 
+const PLACEHOLDER_IMAGE = "/images/placeholder.png";
 // Default service items for fallback
 const defaultServiceItems = [
   {
     id: 1,
     title: "Clipping path services",
-    image: "/images/services/slide-one.png",
+    image: PLACEHOLDER_IMAGE,
     price: "$0.39 Only",
     pricePrefix: "starting at",
     link: "service-details",
@@ -19,7 +20,7 @@ const defaultServiceItems = [
   {
     id: 2,
     title: "Background removal",
-    image: "/images/services/slide-two.png",
+    image: PLACEHOLDER_IMAGE,
     price: "$0.39 Only",
     pricePrefix: "starting at",
     link: "service-details",
@@ -28,7 +29,7 @@ const defaultServiceItems = [
   {
     id: 3,
     title: "Image masking",
-    image: "/images/services/slide-three.png",
+    image: PLACEHOLDER_IMAGE,
     price: "$0.39 Only",
     pricePrefix: "starting at",
     link: "service-details",
@@ -37,7 +38,7 @@ const defaultServiceItems = [
   {
     id: 4,
     title: "Shadow creation",
-    image: "/images/services/slide-four.png",
+    image: PLACEHOLDER_IMAGE,
     price: "$0.39 Only",
     pricePrefix: "starting at",
     link: "service-details",
@@ -46,7 +47,7 @@ const defaultServiceItems = [
   {
     id: 5,
     title: "Ghost mannequin",
-    image: "/images/services/slide-five.png",
+    image: PLACEHOLDER_IMAGE,
     price: "$0.39 Only",
     pricePrefix: "starting at",
     link: "service-details",
@@ -88,7 +89,20 @@ const Services = ({ data }: ServicesProps) => {
 
   // Get service items or use defaults
   // Support both items and services properties for backward compatibility
-  const serviceItems = serviceData.services || serviceData.items || defaultServiceItems;
+  const serviceItems = (serviceData.services && serviceData.services.length > 0
+    ? serviceData.services
+    : serviceData.items && serviceData.items.length > 0
+    ? serviceData.items
+    : defaultServiceItems
+  ).map((item, index) => ({
+    ...item,
+    title: item.title || `Service ${index + 1}`,
+    image: item.image || PLACEHOLDER_IMAGE,
+    price: item.price || "$0.39 Only",
+    pricePrefix: item.pricePrefix || "starting at",
+    link: item.link || "service-details",
+    className: item.className || classNames[index % classNames.length],
+  }));
 
   // Use the service items directly without duplication
   const allServiceItems = serviceItems;
@@ -104,8 +118,8 @@ const Services = ({ data }: ServicesProps) => {
               data-aos-duration="600"
               data-aos-delay="100"
             >
-              <p className="h6 sub-title">{serviceData.subtitle}</p>
-              <h2 className="h2 title">{serviceData.title}</h2>
+              <p className="h6 sub-title">{serviceData.subtitle || "photodit's service"}</p>
+              <h2 className="h2 title">{serviceData.title || "Clipping Path Services for professional images"}</h2>
             </div>
           </div>
           <div className="col-12 col-lg-5 col-xxl-7">
@@ -146,11 +160,9 @@ const Services = ({ data }: ServicesProps) => {
           className="services__slider"
         >
           {allServiceItems.map((item, index) => (
-            <SwiperSlide key={`service-${item.id}-${index}`}>
+            <SwiperSlide key={`service-${item.id || index}-${index}`}>
               <div
-                className={`services__slider-single ${
-                  item.className || classNames[index % classNames.length]
-                }`}
+                className={`services__slider-single ${item.className}`}
               >
                 <Image
                   src={item.image}
@@ -160,12 +172,12 @@ const Services = ({ data }: ServicesProps) => {
                 />
                 <div className="services__slider-single__content">
                   <h4 className="h4">{item.title}</h4>
-                  <Link href={item.link || "service-details"}>
+                  <Link href={item.link}>
                     <i className="icon-arrow-up"></i>
                   </Link>
                   <div className="price-tag">
                     <p>
-                      {item.pricePrefix || "starting at"} <span>{item.price}</span>
+                      {item.pricePrefix} <span>{item.price}</span>
                     </p>
                   </div>
                 </div>

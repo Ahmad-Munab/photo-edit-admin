@@ -1,10 +1,10 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import ctaThumb from "public/images/cta-thumb.png";
 import upload from "public/images/upload.png";
 
 interface AboutCtaProps {
+  ctaImageUrl: string;
   data?: {
     title?: string;
     description?: string;
@@ -12,7 +12,7 @@ interface AboutCtaProps {
   };
 }
 
-const AboutCta = ({ data }: AboutCtaProps) => {
+const AboutCta = ({ ctaImageUrl, data }: AboutCtaProps) => {
   const ctaData = {
     ...data,
   };
@@ -31,7 +31,7 @@ const AboutCta = ({ data }: AboutCtaProps) => {
                     data-aos-delay="100"
                   >
                     <Image
-                      src={ctaData.image || ctaThumb}
+                      src={ctaImageUrl || ctaData.image || ""}
                       alt="CTA Image"
                       width={600}
                       height={400}

@@ -85,14 +85,14 @@ const AboutUs = ({
   // Use the data from the API to render the components
   return (
     <Layout settings={settings}>
-      <AboutBanner data={aboutData?.banner} />
+      <AboutBanner data={aboutData?.banner} bannerImageUrl="" />
       <AboutOverview data={aboutData?.overview} />
-      <AboutMain data={aboutData?.main} />
+      <AboutMain data={aboutData?.main} aboutImageUrl="" />
       <AboutSponsor data={aboutData?.sponsors} />
       <AboutTeam data={aboutData?.team} />
-      <AboutFaq data={aboutData?.faq} />
-      <TestimonialSec data={testimonials} />
-      <AboutCta data={aboutData?.cta} />
+      <AboutFaq data={aboutData?.faq} faqImageUrl="" />
+      <TestimonialSec data={testimonials} testimonialImageUrls={[]} />
+      <AboutCta data={aboutData?.cta} ctaImageUrl="" />
     </Layout>
   );
 };

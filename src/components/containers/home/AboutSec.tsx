@@ -1,22 +1,48 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import AboutThumb from "public/images/about-thumb.png";
 
 interface AboutSecProps {
   data: {
-    subtitle: string;
-    title: string;
-    description: string;
-    additionalText: string;
-    priceTag: string;
-    image: string;
+    subtitle?: string;
+    title?: string;
+    description?: string;
+    additionalText?: string;
+    priceTag?: string;
+    image?: string;
+    buttons?: { text: string; link: string; type: string }[];
   };
+  aboutImageUrl?: string;
 }
 
-const AboutSec = ({ data }: AboutSecProps) => {
+const PLACEHOLDER_IMAGE = "/images/placeholder.png";
+const DEFAULT_BUTTONS = [
+  {
+    text: "Know More",
+    link: "/about-us",
+    type: "primary",
+  },
+  {
+    text: "Contact Us",
+    link: "/contact-us",
+    type: "secondary",
+  },
+];
+
+const AboutSec = ({ aboutImageUrl, data }: AboutSecProps) => {
   const aboutData = {
-    ...data,
+    subtitle: data?.subtitle || "about us",
+    title: data?.title || "Edit your photo in seconds with photodit",
+    description:
+      data?.description ||
+      "Image editing services for ecommerce businesses and pros, from product photographers to Amazon sellers to global brands.",
+    additionalText:
+      data?.additionalText ||
+      "Because a quick product shoot can easily turn into a week or more of editing and formatting your images. Let us look after the edits, so you can get back to the work that needs you.",
+    priceTag: data?.priceTag || "Starting at 25¢ / per image",
+    image: data?.image || PLACEHOLDER_IMAGE,
+    buttons:
+      data?.buttons && data.buttons.length > 0 ? data.buttons : DEFAULT_BUTTONS,
   };
   return (
     <section className="section bg-white about-section">
@@ -30,7 +56,7 @@ const AboutSec = ({ data }: AboutSecProps) => {
               data-aos-delay="100"
             >
               <Image
-                src={aboutData.image || AboutThumb}
+                src={aboutImageUrl || aboutData.image || PLACEHOLDER_IMAGE}
                 alt="About Image"
                 width={600}
                 height={600}
@@ -73,12 +99,15 @@ const AboutSec = ({ data }: AboutSecProps) => {
                 data-aos-duration="600"
                 data-aos-delay="100"
               >
-                <Link href="/about-us" className="btn btn--primary">
-                  Know More
-                </Link>
-                <Link href="/contact-us" className="btn btn--secondary">
-                  Contact Us
-                </Link>
+                {aboutData.buttons.map((button, index) => (
+                  <Link
+                    key={index}
+                    href={button.link || "/about-us"}
+                    className={`btn btn--${button.type || "primary"}`}
+                  >
+                    {button.text || "Learn More"}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
