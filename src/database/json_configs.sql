@@ -8,3 +8,20 @@ CREATE TABLE json_configs (
 
 -- Create index for faster queries
 CREATE INDEX idx_json_configs_key ON json_configs(config_key);
+
+CREATE TABLE media_files (
+  id SERIAL PRIMARY KEY,
+  filename VARCHAR(255),
+  originalName VARCHAR(255),
+  cloudinaryUrl TEXT,
+  cloudinaryPublicId VARCHAR(255),
+  fileSize INTEGER,
+  mimeType VARCHAR(100),
+  folder VARCHAR(255),
+  width INTEGER,
+  height INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- RUN this migrate file to push the schema in neon postgress or just run this on sql editpr
