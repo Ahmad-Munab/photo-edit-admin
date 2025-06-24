@@ -1,26 +1,24 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import ctaThumb from "public/images/cta-thumb.png";
 
 interface CTAData {
-  title?: string;
-  description?: string;
+  title: string;
+  description: string;
   image?: string;
 }
 
 interface CTAProps {
-  ctaImageUrl?: string;
   data: CTAData;
 }
 
-const PLACEHOLDER_IMAGE = "/images/placeholder.png";
-
-const CTA = ({ ctaImageUrl, data }: CTAProps) => {
+const CTA = ({ data }: CTAProps) => {
   // Defensive fallback for missing data or image
   const ctaData = {
     title: data?.title || "Ready to Get Started?",
     description: data?.description || "Transform your images today!",
-    image: data?.image || PLACEHOLDER_IMAGE,
+    image: data?.image || undefined,
   };
 
   return (
@@ -32,13 +30,17 @@ const CTA = ({ ctaImageUrl, data }: CTAProps) => {
               <div className="row gaper align-items-center">
                 <div className="col-12 col-lg-6">
                   <div className="try-cta__thumb ">
-                    <Image
-                      src={ctaImageUrl || ctaData.image}
-                      alt="CTA Image"
-                      width={600}
-                      height={400}
-                      unoptimized={ctaImageUrl?.startsWith("/images/")}
-                    />
+                    {ctaData.image ? (
+                      <Image
+                        src={ctaData.image}
+                        alt="CTA Image"
+                        width={600}
+                        height={400}
+                        unoptimized={ctaData.image.startsWith("/images/")}
+                      />
+                    ) : (
+                      <Image src={ctaThumb} alt="Default CTA Image" />
+                    )}
                   </div>
                 </div>
                 <div className="col-12 col-lg-6">

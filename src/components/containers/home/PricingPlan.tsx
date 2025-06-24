@@ -1,77 +1,26 @@
 import React from "react";
 import Link from "next/link";
 
-const DEFAULT_PLANS = [
-  {
-    id: 1,
-    name: "Basic",
-    price: "$0.39",
-    unit: "per image",
-    description: "Perfect for small businesses",
-    features: [
-      "Clipping Path",
-      "24-hour turnaround",
-      "Unlimited revisions",
-      "Money-back guarantee",
-    ],
-    recommended: false,
-  },
-  {
-    id: 2,
-    name: "Pro",
-    price: "$0.79",
-    unit: "per image",
-    description: "Ideal for growing businesses",
-    features: [
-      "Clipping Path",
-      "Image Masking",
-      "Shadow Creation",
-      "12-hour turnaround",
-      "Unlimited revisions",
-      "Money-back guarantee",
-    ],
-    recommended: true,
-  },
-  {
-    id: 3,
-    name: "Enterprise",
-    price: "$1.29",
-    unit: "per image",
-    description: "For high-volume needs",
-    features: [
-      "All Pro features",
-      "Photo Retouching",
-      "Color Correction",
-      "6-hour turnaround",
-      "Dedicated account manager",
-      "API integration",
-    ],
-    recommended: false,
-  },
-];
-
 interface PricingPlanProps {
-  data?: {
-    subtitle?: string;
-    title?: string;
-    plans?: {
-      id?: number;
-      name?: string;
-      price?: string;
-      unit?: string;
-      description?: string;
-      features?: string[];
-      recommended?: boolean;
+  data: {
+    subtitle: string;
+    title: string;
+    plans: {
+      id: number;
+      name: string;
+      price: string;
+      unit: string;
+      description: string;
+      features: string[];
+      recommended: boolean;
     }[];
   };
-  pricingImageUrls?: string[];
 }
 
-const PricingPlan = ({ pricingImageUrls, data }: PricingPlanProps) => {
+const PricingPlan = ({ data }: PricingPlanProps) => {
   const pricingData = {
-    subtitle: data?.subtitle || "Pricing Plans",
-    title: data?.title || "Choose the Right Plan for You",
-    plans: data?.plans && data.plans.length > 0 ? data.plans : DEFAULT_PLANS,
+    ...data,
+    plans: data.plans,
   };
   return (
     <section className="section pricing-section">
@@ -112,28 +61,23 @@ const PricingPlan = ({ pricingImageUrls, data }: PricingPlanProps) => {
                   >
                     <div className="pricing__meta">
                       <div className="content">
-                        <h4 className="h4">
-                          {plan.name || `Plan ${index + 1}`}
-                        </h4>
-                        <p>{plan.description || "No description available."}</p>
+                        <h4 className="h4">{plan.name}</h4>
+                        <p>{plan.description}</p>
                       </div>
                     </div>
-                    {(plan.features && plan.features.length > 0
-                      ? plan.features
-                      : ["No features listed."]
-                    ).map((feature, featureIndex) => (
+                    {plan.features.map((feature, featureIndex) => (
                       <div key={featureIndex} className="price-frame">
                         <p className="h6">
-                          {feature.split(" ")[0]} {feature.split(" ")[1] || ""}
+                          {feature.split(" ")[0]} {feature.split(" ")[1]}
                         </p>
                         <p>{feature.split(" ").slice(2).join(" ")}</p>
                       </div>
                     ))}
                     <div className="price-plan">
                       <p className="h6">
-                        <span>starting at</span> {plan.price || "$0.00"} Only
+                        <span>starting at</span> {plan.price} Only
                       </p>
-                      <p>{plan.unit || "per image"}</p>
+                      <p>{plan.unit}</p>
                     </div>
                   </div>
                 );
@@ -159,13 +103,6 @@ const PricingPlan = ({ pricingImageUrls, data }: PricingPlanProps) => {
             </div>
           </div>
         </div>
-      </div>
-      <div className="pricing-images">
-        {(Array.isArray(pricingImageUrls) ? pricingImageUrls : []).map(
-          (url, idx) => (
-            <img key={idx} src={url} alt={`Pricing ${idx + 1}`} />
-          )
-        )}
       </div>
     </section>
   );

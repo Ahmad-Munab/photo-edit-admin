@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
+import Thumb from "public/images/faq-two-thumb.png";
 
 interface AboutFaqProps {
   data?: {
@@ -18,10 +19,9 @@ interface AboutFaqProps {
       answer: string;
     }[];
   };
-  faqImageUrl?: string;
 }
 
-const AboutFaq = ({ faqImageUrl, data }: AboutFaqProps) => {
+const AboutFaq = ({ data }: AboutFaqProps) => {
   const [imgTab, setImgTab] = useState(0);
 
   // Default data
@@ -81,7 +81,7 @@ const AboutFaq = ({ faqImageUrl, data }: AboutFaqProps) => {
               data-aos-delay="100"
             >
               <Image
-                src={faqImageUrl || faqData.image}
+                src={faqData.image || Thumb}
                 alt="FAQ Image"
                 width={400}
                 height={500}

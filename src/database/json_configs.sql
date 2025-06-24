@@ -22,3 +22,6 @@ CREATE TABLE media_files (
   height INTEGER,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- RUN this migrate file to push the schema in neon postgress or just run this on sql editpr

@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from "cloudinary";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -16,30 +16,26 @@ cloudinary.config({
 export async function uploadToCloudinary(fileBuffer, options = {}) {
   try {
     const defaultOptions = {
-      resource_type: 'image',
-      folder: options.folder || 'photodit',
-      transformation: [
-        { quality: 'auto' },
-        { fetch_format: 'auto' }
-      ],
-      ...options
+      resource_type: "image",
+      folder: options.folder || "photodit",
+      transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
+      ...options,
     };
 
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        defaultOptions,
-        (error, result) => {
+      cloudinary.uploader
+        .upload_stream(defaultOptions, (error, result) => {
           if (error) {
-            console.error('Cloudinary upload error:', error);
+            console.error("Cloudinary upload error:", error);
             reject(error);
           } else {
             resolve(result);
           }
-        }
-      ).end(fileBuffer);
+        })
+        .end(fileBuffer);
     });
   } catch (error) {
-    console.error('Error uploading to Cloudinary:', error);
+    console.error("Error uploading to Cloudinary:", error);
     throw error;
   }
 }
@@ -54,7 +50,7 @@ export async function deleteFromCloudinary(publicId) {
     const result = await cloudinary.uploader.destroy(publicId);
     return result;
   } catch (error) {
-    console.error('Error deleting from Cloudinary:', error);
+    console.error("Error deleting from Cloudinary:", error);
     throw error;
   }
 }
@@ -68,20 +64,20 @@ export function extractPublicId(cloudinaryUrl) {
   try {
     // Extract public ID from Cloudinary URL
     // Example: https://res.cloudinary.com/dr1wrjavn/image/upload/v1234567890/photodit/image.jpg
-    const urlParts = cloudinaryUrl.split('/');
-    const uploadIndex = urlParts.findIndex(part => part === 'upload');
-    
+    const urlParts = cloudinaryUrl.split("/");
+    const uploadIndex = urlParts.findIndex((part) => part === "upload");
+
     if (uploadIndex === -1) return null;
-    
+
     // Get everything after 'upload/v{version}/'
-    const pathAfterUpload = urlParts.slice(uploadIndex + 2).join('/');
-    
+    const pathAfterUpload = urlParts.slice(uploadIndex + 2).join("/");
+
     // Remove file extension
-    const publicId = pathAfterUpload.replace(/\.[^/.]+$/, '');
-    
+    const publicId = pathAfterUpload.replace(/\.[^/.]+$/, "");
+
     return publicId;
   } catch (error) {
-    console.error('Error extracting public ID:', error);
+    console.error("Error extracting public ID:", error);
     return null;
   }
 }
@@ -95,14 +91,14 @@ export function extractPublicId(cloudinaryUrl) {
 export function generateOptimizedUrl(publicId, transformations = {}) {
   try {
     const defaultTransformations = {
-      quality: 'auto',
-      fetch_format: 'auto',
-      ...transformations
+      quality: "auto",
+      fetch_format: "auto",
+      ...transformations,
     };
 
     return cloudinary.url(publicId, defaultTransformations);
   } catch (error) {
-    console.error('Error generating optimized URL:', error);
+    console.error("Error generating optimized URL:", error);
     return null;
   }
 }
@@ -118,14 +114,16 @@ export async function uploadMultipleToCloudinary(files, options = {}) {
     const uploadPromises = files.map((file, index) => {
       const fileOptions = {
         ...options,
-        public_id: options.public_id ? `${options.public_id}_${index}` : undefined
+        public_id: options.public_id
+          ? `${options.public_id}_${index}`
+          : undefined,
       };
       return uploadToCloudinary(file, fileOptions);
     });
 
     return await Promise.all(uploadPromises);
   } catch (error) {
-    console.error('Error uploading multiple files to Cloudinary:', error);
+    console.error("Error uploading multiple files to Cloudinary:", error);
     throw error;
   }
 }

@@ -62,7 +62,7 @@ const Pricing = ({ pricingData, settings }: PricingPageProps) => {
         image={pricingData.banner?.image}
         breadcrumbs={pricingData.banner?.breadcrumbs}
       />
-      <PricingMain data={pricingData.main} pricingImageUrls={[]} />
+      <PricingMain data={pricingData.main} />
       <PricingProject data={pricingData.project} />
       <AboutFaq data={pricingData.faq} />
     </Layout>

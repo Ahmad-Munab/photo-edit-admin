@@ -1,6 +1,7 @@
-import formidable from "formidable";
-import { v2 as cloudinary } from "cloudinary";
-import configManager from "@/utils/configManager";
+import { formidable } from "formidable";
+import fs from "fs";
+import { uploadToCloudinary } from "@/utils/cloudinaryUtils";
+import { saveMediaFile } from "@/utils/dataUtils";
 
 // Disable the default body parser to handle form data
 export const config = {
@@ -9,102 +10,106 @@ export const config = {
   },
 };
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// Helper to ensure only one response is sent
-function safeSend(res, status, data) {
-  if (!res.headersSent) {
-    res.status(status).json(data);
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return safeSend(res, 405, { message: "Method not allowed" });
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
-  let responded = false;
-  // Set a timeout to guarantee a response is sent
-  const timeout = setTimeout(() => {
-    if (!responded) {
-      responded = true;
-      safeSend(res, 504, { message: "Request timed out" });
-    }
-  }, 30000); // 30 seconds
-
   try {
-    const form = formidable();
-    form.on("error", (err) => {
-      console.error("Formidable error:", err);
-      if (!responded) {
-        responded = true;
-        clearTimeout(timeout);
-        safeSend(res, 500, { message: "Formidable error", error: err.message });
-      }
+    // Get the folder from the query parameters or use 'photodit' as default
+    const folder = req.query.folder || "photodit";
+
+    // Configure formidable for temporary file handling
+    const options = {
+      keepExtensions: true,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+    };
+
+    // Parse the form data
+    const form = formidable(options);
+
+    // Process the form
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) {
+          console.error("Error parsing form:", err);
+          return reject(err);
+        }
+        resolve([fields, files]);
+      });
     });
-    form.parse(req, async (err, fields, files) => {
-      if (responded) return;
-      if (err) {
-        console.error("Error parsing form data:", err);
-        responded = true;
-        clearTimeout(timeout);
-        return safeSend(res, 500, {
-          message: "Error parsing form data",
-          error: err.message,
-        });
-      }
-      const file = files.file;
-      if (!file) {
-        console.error("No file uploaded. Fields:", fields, "Files:", files);
-        responded = true;
-        clearTimeout(timeout);
-        return safeSend(res, 400, { message: "No file uploaded" });
-      }
-      try {
-        console.log("Uploading to Cloudinary. File:", file, "Fields:", fields);
-        const uploadResult = await cloudinary.uploader.upload(file.filepath, {
-          folder: fields.folder || "uploads",
-          resource_type: "auto",
-        });
-        console.log("Cloudinary upload result:", uploadResult);
-        // Save the Cloudinary URL and metadata to the database
-        const mediaId = await configManager.saveMediaFile({
-          filename: file.newFilename || file.originalFilename,
-          originalName: file.originalFilename,
-          cloudinaryUrl: uploadResult.secure_url,
-          cloudinaryPublicId: uploadResult.public_id,
-          fileSize: file.size,
-          mimeType: file.mimetype,
-          folder: fields.folder || "uploads",
-          width: uploadResult.width,
-          height: uploadResult.height,
-        });
-        responded = true;
-        clearTimeout(timeout);
-        return safeSend(res, 200, { url: uploadResult.secure_url, mediaId });
-      } catch (error) {
-        console.error("Cloudinary or DB error:", error);
-        responded = true;
-        clearTimeout(timeout);
-        return safeSend(res, 500, {
-          message: "Cloudinary upload or DB save failed",
-          error: error.message,
-        });
-      }
+
+    // Get the file
+    const fileArray = files.file;
+    if (!fileArray || fileArray.length === 0) {
+      console.error("No file found in the request");
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const file = fileArray[0];
+
+    // Check if the file is an image
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/svg+xml",
+    ];
+    if (!allowedTypes.includes(file.mimetype)) {
+      // Delete the temporary file
+      fs.unlinkSync(file.filepath);
+      return res.status(400).json({ message: "Only image files are allowed" });
+    }
+
+    // Read the file buffer
+    const fileBuffer = fs.readFileSync(file.filepath);
+
+    // Upload to Cloudinary
+    const cloudinaryResult = await uploadToCloudinary(fileBuffer, {
+      folder: `photodit/${folder}`,
+      public_id: `${Date.now()}-${file.originalFilename
+        .replace(/\s+/g, "-")
+        .replace(/\.[^/.]+$/, "")}`,
+      resource_type: "image",
+    });
+
+    // Clean up temporary file
+    fs.unlinkSync(file.filepath);
+
+    // Save file metadata to database
+    try {
+      await saveMediaFile({
+        filename: `${cloudinaryResult.public_id}.${cloudinaryResult.format}`,
+        originalName: file.originalFilename,
+        cloudinaryUrl: cloudinaryResult.secure_url,
+        cloudinaryPublicId: cloudinaryResult.public_id,
+        fileSize: cloudinaryResult.bytes,
+        mimeType: file.mimetype,
+        folder: folder,
+        width: cloudinaryResult.width,
+        height: cloudinaryResult.height,
+      });
+    } catch (dbError) {
+      console.error("Error saving file metadata to database:", dbError);
+      // Continue with the response even if database save fails
+    }
+
+    return res.status(200).json({
+      message: "File uploaded successfully",
+      path: cloudinaryResult.secure_url,
+      filePath: cloudinaryResult.secure_url,
+      publicId: cloudinaryResult.public_id,
+      width: cloudinaryResult.width,
+      height: cloudinaryResult.height,
+      size: cloudinaryResult.bytes,
+      format: cloudinaryResult.format,
+      timestamp: Date.now(),
     });
   } catch (error) {
-    console.error("Unexpected server error:", error);
-    if (!responded) {
-      responded = true;
-      clearTimeout(timeout);
-      safeSend(res, 500, {
-        message: "Unexpected server error",
-        error: error.message,
-      });
-    }
+    console.error("Error uploading file:", error);
+    return res
+      .status(500)
+      .json({ message: "Error uploading file", error: error.message });
   }
 }
