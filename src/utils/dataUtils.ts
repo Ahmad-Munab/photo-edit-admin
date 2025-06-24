@@ -1,11 +1,6 @@
 import fs from "fs";
-import { v2 } from "cloudinary";
-
-const cloudinary = v2(
-  "CLOUDINARY_CLOUD_NAME",
-  "CLOUDINARY_API_KEY",
-  "CLOUDINARY_API_SECRET"
-);
+import * as cloudinary from "cloudinary";
+import { Readable } from "stream";
 
 export interface FileData {
   filename: string;
@@ -31,6 +26,13 @@ export interface UploadResult {
   width: number;
   height: number;
 }
+
+// Initialize Cloudinary configuration
+cloudinary.v2.config({
+  cloud_name: "CLOUDINARY_CLOUD_NAME",
+  api_key: "CLOUDINARY_API_KEY",
+  api_secret: "CLOUDINARY_API_SECRET",
+});
 
 export async function getData(filename: string): Promise<any> {
   try {
@@ -68,10 +70,6 @@ export async function updateSection<T extends Record<string, any>>(
   }
 }
 
-export async function saveQuoteRequest(quoteData: QuoteRequest): Promise<void> {
-  // Implement quote saving logic here
-}
-
 export async function getMediaFiles(folder?: string): Promise<FileData[]> {
   // Implement media fetching logic here
   return [];
@@ -84,22 +82,46 @@ export async function getQuoteRequests(
   return [];
 }
 
+export function isPageData(data: any): boolean {
+  return data && data.type === "page";
+}
+
+export function isTeamData(data: any): boolean {
+  return data && data.type === "team";
+}
+
 export async function uploadFile(fileBuffer: Buffer): Promise<UploadResult> {
   try {
-    const uploadResult = await cloudinary.uploader.upload_stream(
-      {
-        folder: "your-folder-name",
-        resource_type: "auto",
-      },
-      fileBuffer
-    );
+    return new Promise<UploadResult>((resolve, reject) => {
+      const uploadStream = cloudinary.v2.uploader.upload_stream(
+        {
+          folder: "your-folder-name",
+          resource_type: "auto",
+        },
+        (error: any, result: any) => {
+          if (error) {
+            console.error("Error uploading to Cloudinary:", error);
+            reject(error);
+          } else {
+            resolve({
+              public_id: result.public_id,
+              secure_url: result.secure_url,
+              width: result.width,
+              height: result.height,
+            });
+          }
+        }
+      );
 
-    return {
-      public_id: uploadResult.public_id,
-      secure_url: uploadResult.secure_url,
-      width: uploadResult.width,
-      height: uploadResult.height,
-    };
+      const stream = new Readable({
+        read() {
+          this.push(fileBuffer);
+          this.push(null);
+        },
+      });
+
+      stream.pipe(uploadStream);
+    });
   } catch (error) {
     console.error("Error uploading to Cloudinary:", error);
     throw error;

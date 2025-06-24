@@ -1,4 +1,5 @@
-import React, { Suspense, useEffect } from "react";
+import React, { useEffect } from "react";
+import { Suspense } from "react";
 
 // bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -27,7 +28,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <Suspense>
+    <Suspense fallback={<div>Loading...</div>}>
       <Component {...pageProps} />
     </Suspense>
   );

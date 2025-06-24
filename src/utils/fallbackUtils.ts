@@ -1,37 +1,45 @@
-/**
- * Shared fallback utilities for React components
- */
+interface Data {
+  // Define your data structure here
+}
 
-export const PLACEHOLDER_IMAGE = "/images/placeholder.png";
+interface Defaults {
+  // Define your defaults structure here
+}
 
-/**
- * Deep merge two objects, preferring values from 'data' but filling missing fields from 'defaults'.
- * Arrays are replaced, not merged.
- */
-export function getWithFallback<T>(defaults: T, data?: Partial<T>): T {
-  if (typeof defaults !== 'object' || defaults === null) return (data as T) || defaults;
-  if (typeof data !== 'object' || data === null) return defaults;
-  const result: any = Array.isArray(defaults) ? [...defaults] : { ...defaults };
-  for (const key in defaults) {
-    if (Object.prototype.hasOwnProperty.call(defaults, key)) {
-      if (
-        typeof (defaults as any)[key] === 'object' &&
-        (defaults as any)[key] !== null &&
-        !Array.isArray((defaults as any)[key])
-      ) {
-        result[key] = getWithFallback((defaults as any)[key], (data as any)[key]);
-      } else if (Array.isArray((defaults as any)[key])) {
-        result[key] = (data as any)[key] && (data as any)[key].length > 0 ? (data as any)[key] : (defaults as any)[key];
-      } else {
-        result[key] = (data as any)[key] !== undefined ? (data as any)[key] : (defaults as any)[key];
+function mergeDataAndDefaults(
+  data: Data,
+  defaults: Defaults
+): Record<string, any> {
+  try {
+    const result: Record<string, any> = {};
+    if (
+      data === null ||
+      data === undefined ||
+      defaults === null ||
+      defaults === undefined
+    ) {
+      throw new Error("Data or defaults cannot be null or undefined");
+    }
+    for (const key in defaults) {
+      if (Object.prototype.hasOwnProperty.call(defaults, key)) {
+        if (data[key] === undefined) {
+          result[key] = defaults[key];
+        } else {
+          result[key] = data[key] !== undefined ? data[key] : defaults[key];
+        }
       }
     }
-  }
-  // Add any extra keys from data
-  for (const key in data) {
-    if (Object.prototype.hasOwnProperty.call(data, key) && result[key] === undefined) {
-      result[key] = (data as any)[key];
+    for (const key in data) {
+      if (
+        Object.prototype.hasOwnProperty.call(data, key) &&
+        result[key] === undefined
+      ) {
+        result[key] = data[key];
+      }
     }
+    return result;
+  } catch (error) {
+    console.error("Error in mergeDataAndDefaults:", error);
+    throw error;
   }
-  return result;
-} 
+}
