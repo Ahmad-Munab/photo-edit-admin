@@ -23,25 +23,32 @@ const ServicesItemsEditor = () => {
         const response = await fetch('/api/content/services?section=services');
         const data = await response.json();
         
-        // Initialize image public IDs
         if (data && data.length > 0) {
-          const initialPublicIds = data.map(service => {
+          // Initialize services data and public IDs
+          const initialServices = [];
+          const initialPublicIds = [];
+          
+          data.forEach(service => {
             if (service.image && typeof service.image === 'object') {
-              return service.image.publicId || '';
+              initialServices.push({
+                ...service,
+                image: service.image.url || ''
+              });
+              initialPublicIds.push(service.image.publicId || '');
+            } else {
+              initialServices.push({
+                ...service,
+                image: service.image || ''
+              });
+              initialPublicIds.push('');
             }
-            return '';
           });
+          
+          setServicesData(initialServices);
           setImagePublicIds(initialPublicIds);
-          
-          // Convert services to use image URL directly for backward compatibility
-          const updatedServices = data.map(service => ({
-            ...service,
-            image: service.image && typeof service.image === 'object' ? service.image.url : service.image || ''
-          }));
-          
-          setServicesData(updatedServices);
         } else {
-          setServicesData(data || []);
+          setServicesData([]);
+          setImagePublicIds([]);
         }
         
         setLoading(false);
@@ -116,7 +123,18 @@ const ServicesItemsEditor = () => {
   };
 
   const handleImageUpload = (index, imageUrl, publicId) => {
-    handleServiceChange(index, 'image', imageUrl, publicId);
+    // Update the service with the new image URL
+    const updatedServices = [...servicesData];
+    updatedServices[index] = {
+      ...updatedServices[index],
+      image: imageUrl
+    };
+    setServicesData(updatedServices);
+    
+    // Update the public ID
+    const updatedPublicIds = [...imagePublicIds];
+    updatedPublicIds[index] = publicId || '';
+    setImagePublicIds(updatedPublicIds);
   };
 
   const handleSave = async () => {
@@ -126,13 +144,21 @@ const ServicesItemsEditor = () => {
 
     try {
       // Prepare data with images including public IDs
-      const dataToSave = servicesData.map((service, index) => ({
-        ...service,
-        image: {
-          url: service.image,
-          publicId: imagePublicIds[index] || ''
+      const dataToSave = servicesData.map((service, index) => {
+        const serviceData = { ...service };
+        
+        // Only include image object if there's an image URL
+        if (service.image) {
+          serviceData.image = {
+            url: service.image,
+            publicId: imagePublicIds[index] || ''
+          };
+        } else {
+          serviceData.image = '';
         }
-      }));
+        
+        return serviceData;
+      });
 
       const response = await fetch('/api/content/services?section=services', {
         method: 'PUT',
@@ -307,35 +333,45 @@ const ServicesItemsEditor = () => {
 
                 <div className="admin-editor__field">
                   <label className="admin-editor__label">Service Image</label>
-                  <div className="admin-editor__image-preview">
+                  <div className="admin-editor__image-upload">
+                    <ImageUploader
+                      currentImage={service.image}
+                      onImageSelect={(file) => {
+                        const updatedServices = [...servicesData];
+                        updatedServices[index] = {
+                          ...updatedServices[index],
+                          image: URL.createObjectURL(file)
+                        };
+                        setServicesData(updatedServices);
+                      }}
+                      onImageUpload={(url, publicId) => handleImageUpload(index, url, publicId)}
+                      folder="services/items"
+                      label={`Service ${index + 1} Image`}
+                      recommendedSize="300x300px"
+                      className="admin-editor__image-uploader"
+                      oldPublicId={imagePublicIds[index] || ''}
+                      uploadOnSelect={true}
+                    />
                     {service.image && (
-                      <Image
-                        src={service.image}
-                        alt={service.title || 'Service Image'}
-                        width={200}
-                        height={150}
-                        className="admin-editor__preview-img"
-                      />
+                      <div className="admin-editor__image-preview">
+                        <img 
+                          src={service.image} 
+                          alt={`Preview ${index}`} 
+                          className="admin-editor__preview-image"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/images/placeholder-image.png';
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
-                  <div className="admin-editor__image-upload-wrapper">
-                    <ImageUploader
-                      value={service.image}
-                      onChange={(url, publicId) => handleImageUpload(index, url, publicId)}
-                      folder="services/items"
-                      width={400}
-                      height={300}
-                      className="admin-editor__image-uploader"
-                    />
-                  </div>
-                  <div className="admin-editor__image-help">
-                    <p className="admin-editor__help-text">
-                      <strong>Recommended size:</strong> 400x300px
-                    </p>
-                    <p className="admin-editor__help-text">
-                      <strong>Image types:</strong> JPEG, PNG, WEBP
-                    </p>
-                  </div>
+                  <p className="admin-editor__help-text">
+                    <strong>Recommended size:</strong> 400x300px
+                  </p>
+                  <p className="admin-editor__help-text">
+                    <strong>Image types:</strong> JPEG, PNG, WEBP
+                  </p>
                 </div>
               </div>
             ))}
@@ -344,6 +380,32 @@ const ServicesItemsEditor = () => {
       </div>
 
       <style jsx>{`
+        .admin-editor__image-upload {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          margin-bottom: 1rem;
+        }
+        
+        .admin-editor__image-preview {
+          max-width: 200px;
+          border: 1px solid #e2e8f0;
+          border-radius: 0.5rem;
+          overflow: hidden;
+        }
+        
+        .admin-editor__preview-image {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+        
+        .admin-editor__help-text {
+          margin: 0.25rem 0;
+          color: #64748b;
+          font-size: 0.875rem;
+        }
+        
         .admin-editor__loading {
           display: flex;
           justify-content: center;
