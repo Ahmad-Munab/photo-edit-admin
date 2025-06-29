@@ -354,9 +354,11 @@ const ServicesItemsEditor = () => {
                     />
                     {service.image && (
                       <div className="admin-editor__image-preview">
-                        <img 
+                        <Image
                           src={service.image} 
                           alt={`Preview ${index}`} 
+                          width={200}
+                          height={200}
                           className="admin-editor__preview-image"
                           onError={(e) => {
                             e.target.onerror = null;

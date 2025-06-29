@@ -298,7 +298,7 @@ const AboutSponsorsEditor = () => {
                   borderRadius: '8px',
                   marginTop: '10px'
                 }}>
-                  <p>No logos added yet. Click "Add Logo" to get started.</p>
+                  <p>No logos added yet. Click &quot;Add Logo&quot; to get started.</p>
                 </div>
               )}
             </div>
