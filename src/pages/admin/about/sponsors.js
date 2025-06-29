@@ -43,7 +43,7 @@ const AboutSponsorsEditor = () => {
   };
 
   // Handle logo upload completion
-  const handleLogoUpload = (index, imageUrl) => {
+  const handleLogoUpload = (index, imageUrl, publicId) => {
     if (!imageUrl) return;
     
     setSponsorsData(prev => {
@@ -54,6 +54,13 @@ const AboutSponsorsEditor = () => {
         ...prev,
         logos: updatedLogos
       };
+    });
+    
+    // Also update the logo in the local state immediately
+    setLogos(prev => {
+      const newLogos = [...prev];
+      newLogos[index] = imageUrl;
+      return newLogos;
     });
   };
 
@@ -68,6 +75,13 @@ const AboutSponsorsEditor = () => {
         logos: updatedLogos
       };
     });
+    
+    // Also update the local state immediately
+    setLogos(prev => {
+      const newLogos = [...prev];
+      newLogos.splice(index, 1);
+      return newLogos;
+    });
   };
   
   // Add a new logo slot
@@ -76,6 +90,9 @@ const AboutSponsorsEditor = () => {
       ...prev,
       logos: [...prev.logos, '']
     }));
+    
+    // Also update the local state
+    setLogos(prev => [...prev, '']);
   };
 
   const handleSave = async (e) => {
@@ -84,21 +101,23 @@ const AboutSponsorsEditor = () => {
     setError(null);
 
     try {
-      // Filter out any empty logo entries
-      const validLogos = sponsorsData.logos.filter(logo => {
-        // Handle both string and object logo values
-        if (!logo) return false;
-        if (typeof logo === 'string') return logo.trim() !== '';
-        if (typeof logo === 'object' && logo.url) return logo.url.trim() !== '';
-        return false;
-      }).map(logo => {
-        // Normalize to string URLs
-        return typeof logo === 'object' ? logo.url : logo;
-      });
+      // Filter out any empty logo entries and ensure they're strings
+      const validLogos = sponsorsData.logos
+        .filter(logo => {
+          if (!logo) return false;
+          if (typeof logo === 'string') return logo.trim() !== '';
+          return false;
+        })
+        .map(logo => logo.trim());
+      
+      if (validLogos.length === 0) {
+        toast.warning('Please add at least one logo');
+        return;
+      }
       
       // Prepare data to save
       const dataToSave = {
-        title: sponsorsData.title,
+        title: sponsorsData.title.trim(),
         logos: validLogos
       };
 
@@ -199,10 +218,28 @@ const AboutSponsorsEditor = () => {
               <h3 className="admin-editor__section-title">Sponsor Logos</h3>
               <button
                 type="button"
-                className="admin-editor__add-button"
                 onClick={handleAddLogo}
+                className="add-logo"
+                disabled={saving}
+                style={{
+                  background: '#3182ce',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  marginTop: '20px',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#2c5282'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#3182ce'}
               >
-                + Add Logo
+                <span>+</span> Add Logo
               </button>
             </div>
             <div className="admin-editor__sponsors-help">
@@ -213,37 +250,58 @@ const AboutSponsorsEditor = () => {
                 <strong>Recommended ratio:</strong> 3:2
               </p>
             </div>
-            <div className="admin-editor__logos-grid">
+            <div className="logo-grid">
               {sponsorsData.logos.map((logo, index) => (
-                <div key={index} className="admin-editor__logo-item">
+                <div key={index} className="logo-item">
                   <ImageUploader
                     currentImage={logo}
                     onImageUpload={(url) => handleLogoUpload(index, url)}
-                    folder="about/sponsors"
+                    folder="sponsors"
                     label={`Logo ${index + 1}`}
-                    className="admin-editor__logo-uploader"
+                    helpText="Recommended size: 200x100px"
+                    maxSize={2} // 2MB
+                    required
+                    style={{ marginBottom: '10px' }}
                   />
                   <button
                     type="button"
-                    className="admin-editor__remove-button"
                     onClick={() => handleRemoveLogo(index)}
+                    className="remove-logo"
+                    disabled={saving}
+                    style={{
+                      background: '#e53e3e',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      width: '100%',
+                      marginTop: '8px',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#c53030'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = '#e53e3e'}
                   >
-                    Remove
+                    Remove Logo
                   </button>
                 </div>
               ))}
+              
               {sponsorsData.logos.length === 0 && (
-                <div className="admin-editor__no-logos">
+                <div className="admin-editor__no-logos" style={{
+                  gridColumn: '1 / -1',
+                  textAlign: 'center',
+                  padding: '20px',
+                  color: '#666',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '8px',
+                  marginTop: '10px'
+                }}>
                   <p>No logos added yet. Click "Add Logo" to get started.</p>
                 </div>
               )}
             </div>
-
-            {Object.keys(pendingImages).length > 0 && (
-              <div className="admin-editor__pending-notice">
-                <p>You have {Object.keys(pendingImages).length} pending image changes. Click &quot;Save Changes&quot; to upload and save them.</p>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -400,13 +458,26 @@ const AboutSponsorsEditor = () => {
           font-size: 14px;
         }
 
-        .admin-editor__logos-grid {
+        .logo-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          gap: 24px;
+          gap: 20px;
           margin-top: 20px;
         }
         
+        .logo-item {
+          background: white;
+          border-radius: 8px;
+          padding: 15px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .logo-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
         .admin-editor__logo-uploader-container {
           position: relative;
           margin-bottom: 12px;

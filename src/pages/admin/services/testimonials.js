@@ -348,13 +348,13 @@ const ServicesTestimonialsEditor = () => {
                   <label className="admin-editor__label">Profile Image</label>
                   <div className="admin-editor__image-upload-wrapper">
                     <ImageUploader
-                      value={testimonial.image}
-                      onChange={(url, publicId) => handleImageUpload(index, url, publicId)}
+                      currentImage={testimonial.image}
+                      onImageUpload={(url, publicId) => handleImageUpload(index, url, publicId)}
                       folder="services/testimonials"
                       width={100}
                       height={100}
                       className="admin-editor__image-uploader"
-                      aspectRatio={1}
+                      recommendedSize="100x100px"
                     />
                   </div>
                   <div className="admin-editor__image-help">
