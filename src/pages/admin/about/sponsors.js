@@ -15,6 +15,7 @@ const AboutSponsorsEditor = () => {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [pendingImages, setPendingImages] = useState({});
 
   useEffect(() => {
     // Fetch the sponsors data when the component mounts
@@ -41,63 +42,66 @@ const AboutSponsorsEditor = () => {
     });
   };
 
-  // Extract public ID from a Cloudinary URL
-  const getPublicIdFromUrl = (url) => {
-    if (!url) return '';
-    // Extract public ID from Cloudinary URL format
-    const matches = url.match(/upload\/v\d+\/([^\/]+)\./);
-    return matches ? matches[1] : '';
-  };
-
-  const handleLogoChange = (index, logoUrl) => {
-    const updatedLogos = [...sponsorsData.logos];
-    updatedLogos[index] = {
-      url: logoUrl,
-      publicId: getPublicIdFromUrl(logoUrl)
-    };
-
-    setSponsorsData({
-      ...sponsorsData,
-      logos: updatedLogos
+  // Handle logo upload completion
+  const handleLogoUpload = (index, imageUrl) => {
+    if (!imageUrl) return;
+    
+    setSponsorsData(prev => {
+      const updatedLogos = [...prev.logos];
+      updatedLogos[index] = imageUrl;
+      
+      return {
+        ...prev,
+        logos: updatedLogos
+      };
     });
   };
 
-  const handleAddLogo = () => {
-    setSponsorsData({
-      ...sponsorsData,
-      logos: [...sponsorsData.logos, { url: '', publicId: '' }]
-    });
-  };
-
+  // Handle logo removal
   const handleRemoveLogo = (index) => {
-    const updatedLogos = [...sponsorsData.logos];
-    updatedLogos.splice(index, 1);
-
-    setSponsorsData({
-      ...sponsorsData,
-      logos: updatedLogos
+    setSponsorsData(prev => {
+      const updatedLogos = [...prev.logos];
+      updatedLogos.splice(index, 1);
+      
+      return {
+        ...prev,
+        logos: updatedLogos
+      };
     });
   };
+  
+  // Add a new logo slot
+  const handleAddLogo = () => {
+    setSponsorsData(prev => ({
+      ...prev,
+      logos: [...prev.logos, '']
+    }));
+  };
 
-
-
-  const handleSave = async () => {
+  const handleSave = async (e) => {
+    e.preventDefault();
     setSaving(true);
-    setSaveSuccess(false);
     setError(null);
 
     try {
-      // Prepare the data to send to the server
+      // Filter out any empty logo entries
+      const validLogos = sponsorsData.logos.filter(logo => {
+        // Handle both string and object logo values
+        if (!logo) return false;
+        if (typeof logo === 'string') return logo.trim() !== '';
+        if (typeof logo === 'object' && logo.url) return logo.url.trim() !== '';
+        return false;
+      }).map(logo => {
+        // Normalize to string URLs
+        return typeof logo === 'object' ? logo.url : logo;
+      });
+      
+      // Prepare data to save
       const dataToSave = {
-        ...sponsorsData,
-        // Only send the URLs to the server, not the public IDs
-        logos: sponsorsData.logos.map(logo => ({
-          url: logo.url,
-          publicId: logo.publicId
-        }))
+        title: sponsorsData.title,
+        logos: validLogos
       };
 
-      // Save the sponsors data
       const response = await fetch('/api/content/about?section=sponsors', {
         method: 'PUT',
         headers: {
@@ -108,7 +112,13 @@ const AboutSponsorsEditor = () => {
 
       if (response.ok) {
         setSaveSuccess(true);
-        // Scroll to top to show the success message
+        // Update local state with the saved data
+        setSponsorsData(prev => ({
+          ...prev,
+          logos: validLogos
+        }));
+        
+        // Show success message
         window.scrollTo(0, 0);
         toast.success('Sponsors section saved successfully!');
       } else {
@@ -186,16 +196,15 @@ const AboutSponsorsEditor = () => {
 
           <div className="admin-editor__section">
             <div className="admin-editor__section-header">
-              <h2 className="admin-editor__section-title">Sponsor Logos</h2>
+              <h3 className="admin-editor__section-title">Sponsor Logos</h3>
               <button
                 type="button"
                 className="admin-editor__add-button"
                 onClick={handleAddLogo}
               >
-                Add Logo
+                + Add Logo
               </button>
             </div>
-
             <div className="admin-editor__sponsors-help">
               <p className="admin-editor__help-text">
                 <strong>Accepted formats:</strong> JPEG, PNG, GIF, WEBP, SVG (max 5MB)
@@ -203,20 +212,15 @@ const AboutSponsorsEditor = () => {
               <p className="admin-editor__help-text">
                 <strong>Recommended ratio:</strong> 3:2
               </p>
-              <p className="admin-editor__help-text">
-                Sponsor logos should be transparent PNG files
-              </p>
             </div>
-
             <div className="admin-editor__logos-grid">
               {sponsorsData.logos.map((logo, index) => (
                 <div key={index} className="admin-editor__logo-item">
                   <ImageUploader
-                    currentImage={typeof logo === 'string' ? logo : logo.url}
-                    onImageUpload={(imageUrl) => handleLogoChange(index, imageUrl)}
+                    currentImage={logo}
+                    onImageUpload={(url) => handleLogoUpload(index, url)}
                     folder="about/sponsors"
                     label={`Logo ${index + 1}`}
-                    recommendedSize="300x200px"
                     className="admin-editor__logo-uploader"
                   />
                   <button
@@ -228,6 +232,11 @@ const AboutSponsorsEditor = () => {
                   </button>
                 </div>
               ))}
+              {sponsorsData.logos.length === 0 && (
+                <div className="admin-editor__no-logos">
+                  <p>No logos added yet. Click "Add Logo" to get started.</p>
+                </div>
+              )}
             </div>
 
             {Object.keys(pendingImages).length > 0 && (
@@ -393,17 +402,59 @@ const AboutSponsorsEditor = () => {
 
         .admin-editor__logos-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 20px;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 24px;
+          margin-top: 20px;
         }
-
-        .admin-editor__logo-item {
-          background-color: #f8fafc;
-          border-radius: 8px;
+        
+        .admin-editor__logo-uploader-container {
+          position: relative;
+          margin-bottom: 12px;
+        }
+        
+        .admin-editor__logo-uploader {
+          border: 1px solid #e2e8f0;
+          border-radius: 4px;
           padding: 16px;
+          background-color: #f8fafc;
         }
-
-        .admin-editor__logo-preview {
+        
+        .admin-editor__logo-uploader .image-uploader__preview {
+          min-height: 100px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 12px;
+          background-color: white;
+          border: 1px dashed #cbd5e1;
+          border-radius: 4px;
+          overflow: hidden;
+        }
+        
+        .admin-editor__logo-uploader .image-uploader__preview-img {
+          max-width: 100%;
+          max-height: 120px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+        }
+        
+        .admin-editor__uploading-indicator {
+          position: absolute;
+          bottom: 16px;
+          left: 16px;
+          right: 16px;
+          background: rgba(0, 0, 0, 0.7);
+          color: white;
+          text-align: center;
+          padding: 4px 0;
+          font-size: 12px;
+          border-radius: 4px;
+          z-index: 2;
+        }
+        
+        .admin-editor__logo-uploader-container {
+          position: relative;
           display: flex;
           justify-content: center;
           align-items: center;
