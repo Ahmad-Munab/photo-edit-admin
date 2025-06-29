@@ -317,29 +317,44 @@ const CustomQuote = ({ gallery, form }: CustomQuoteProps) => {
           const formDataObj = new FormData();
           formDataObj.append("file", uploadedFile);
 
+          // Upload to Cloudinary
           const uploadResponse = await fetch(
-            "/api/upload/image?folder=quotes",
+            "/api/upload?folder=quote-requests",
             {
               method: "POST",
               body: formDataObj,
             }
           );
 
-          if (uploadResponse.ok) {
-            const uploadData = await uploadResponse.json();
-            filePath = uploadData.path;
-            setUploadedFilePath(filePath);
-          } else {
-            const errorData = await uploadResponse.json();
+          if (!uploadResponse.ok) {
+            const errorData = await uploadResponse.json().catch(() => ({}));
             console.error("Upload response error:", errorData);
             throw new Error(errorData.message || "Failed to upload file");
           }
+
+          const uploadData = await uploadResponse.json();
+          
+          if (!uploadData.url) {
+            throw new Error("Invalid response from file upload");
+          }
+          
+          filePath = uploadData.url;
+          setUploadedFilePath(filePath);
+          
+          // Log successful upload
+          console.log("File uploaded successfully:", {
+            url: filePath,
+            publicId: uploadData.publicId,
+            size: uploadedFile.size,
+            type: uploadedFile.type
+          });
+          
         } catch (uploadError: any) {
           console.error("File upload error:", uploadError);
           setFormStatus({
             submitting: false,
             success: false,
-            error: `File upload failed: ${uploadError.message}`,
+            error: `File upload failed: ${uploadError.message || 'Unknown error'}`,
           });
           return;
         }

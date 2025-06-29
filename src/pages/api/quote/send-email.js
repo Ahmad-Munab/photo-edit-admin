@@ -28,20 +28,15 @@ export default async function handler(req, res) {
       cloudLink,
     } = req.body;
 
-    // Handle file upload if present
+    // Handle uploaded file URL
     let fileMetadata = null;
-    if (req.files && req.files.file) {
-      const file = req.files.file;
-      const fileExt = file.originalname.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      
-      // Upload to Cloudinary and save metadata
-      fileMetadata = await uploadImageAndSaveMetadata(file.buffer, {
-        originalName: file.originalname,
-        mimeType: file.mimetype,
-        size: file.size,
-        folder: 'quote-requests',
-      });
+    if (uploadedFile) {
+      // If uploadedFile is a URL, create a basic metadata object
+      fileMetadata = {
+        cloudinaryUrl: uploadedFile,
+        originalName: uploadedFile.split('/').pop() || 'uploaded-file',
+        fileSize: 0 // Size not available since we only have the URL
+      };
     }
 
     // Format file options for email
