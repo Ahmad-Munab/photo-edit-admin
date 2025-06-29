@@ -1,7 +1,7 @@
 import { formidable } from "formidable";
 import fs from "fs";
 import { uploadToCloudinary } from "@/utils/cloudinaryUtils";
-import { saveMediaFile } from "@/utils/dataUtils";
+import { saveMediaFile, deleteMediaFile } from "@/utils/dataUtils";
 
 // Disable the default body parser to handle form data
 export const config = {
@@ -16,8 +16,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get the folder from the query parameters or use 'photodit' as default
+    // Get the query parameters
     const folder = req.query.folder || "photodit";
+    const oldPublicId = req.query.oldPublicId || null;
 
     // Configure formidable for temporary file handling
     const options = {
@@ -65,14 +66,29 @@ export default async function handler(req, res) {
     // Read the file buffer
     const fileBuffer = fs.readFileSync(file.filepath);
 
-    // Upload to Cloudinary
-    const cloudinaryResult = await uploadToCloudinary(fileBuffer, {
+    // Prepare upload options
+    const uploadOptions = {
       folder: `photodit/${folder}`,
       public_id: `${Date.now()}-${file.originalFilename
         .replace(/\s+/g, "-")
         .replace(/\.[^/.]+$/, "")}`,
       resource_type: "image",
-    });
+      oldPublicId: oldPublicId, // Pass the old public ID to delete the old image
+    };
+
+    // If we have an oldPublicId, delete the old image from the database first
+    if (oldPublicId) {
+      try {
+        await deleteMediaFile(oldPublicId);
+        console.log(`Deleted old image with public ID: ${oldPublicId}`);
+      } catch (deleteError) {
+        console.error("Error deleting old image from database:", deleteError);
+        // Continue with the upload even if deletion fails
+      }
+    }
+
+    // Upload to Cloudinary (this will also delete the old image from Cloudinary if oldPublicId is provided)
+    const cloudinaryResult = await uploadToCloudinary(fileBuffer, uploadOptions);
 
     // Clean up temporary file
     fs.unlinkSync(file.filepath);

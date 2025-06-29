@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import AdminLayout from '@/components/admin/AdminLayout';
 import ImageUploader from '@/components/admin/common/ImageUploader';
 import { toast } from 'react-toastify';
-import { deleteImage } from '@/utils/imageUtils';
 
 const AboutSponsorsEditor = () => {
   const [sponsorsData, setSponsorsData] = useState({
@@ -15,12 +14,7 @@ const AboutSponsorsEditor = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [pendingImages, setPendingImages] = useState({});
-  const [uploadingImages, setUploadingImages] = useState(false);
   const [error, setError] = useState(null);
-
-  // Create refs for image uploaders
-  const imageUploaderRefs = useRef({});
 
   useEffect(() => {
     // Fetch the sponsors data when the component mounts
@@ -47,9 +41,20 @@ const AboutSponsorsEditor = () => {
     });
   };
 
-  const handleLogoChange = (index, value) => {
+  // Extract public ID from a Cloudinary URL
+  const getPublicIdFromUrl = (url) => {
+    if (!url) return '';
+    // Extract public ID from Cloudinary URL format
+    const matches = url.match(/upload\/v\d+\/([^\/]+)\./);
+    return matches ? matches[1] : '';
+  };
+
+  const handleLogoChange = (index, logoUrl) => {
     const updatedLogos = [...sponsorsData.logos];
-    updatedLogos[index] = value;
+    updatedLogos[index] = {
+      url: logoUrl,
+      publicId: getPublicIdFromUrl(logoUrl)
+    };
 
     setSponsorsData({
       ...sponsorsData,
@@ -60,7 +65,7 @@ const AboutSponsorsEditor = () => {
   const handleAddLogo = () => {
     setSponsorsData({
       ...sponsorsData,
-      logos: [...sponsorsData.logos, '']
+      logos: [...sponsorsData.logos, { url: '', publicId: '' }]
     });
   };
 
@@ -74,56 +79,7 @@ const AboutSponsorsEditor = () => {
     });
   };
 
-  // Handle image selection (not immediate upload)
-  const handleImageSelect = (index, file) => {
-    // Store the pending image in state
-    setPendingImages({
-      ...pendingImages,
-      [index]: file
-    });
-  };
 
-  // Handle image upload when the form is submitted
-  const uploadPendingImages = async () => {
-    // Check if there are any pending images
-    const pendingIndices = Object.keys(pendingImages);
-    if (pendingIndices.length === 0) {
-      return true; // No images to upload
-    }
-
-    setUploadingImages(true);
-    let allUploadsSuccessful = true;
-
-    try {
-      // Upload all pending images
-      for (const indexStr of pendingIndices) {
-        const index = parseInt(indexStr);
-        const file = pendingImages[index];
-
-        // Get the uploader ref for this index
-        const uploaderRef = imageUploaderRefs.current[index];
-        if (uploaderRef && uploaderRef.hasSelectedFile()) {
-          const imagePath = await uploaderRef.uploadImage();
-
-          if (imagePath) {
-            // Update the logos array with the new image path
-            handleLogoChange(index, imagePath);
-          } else {
-            allUploadsSuccessful = false;
-          }
-        }
-      }
-
-      // Clear pending images after upload
-      setPendingImages({});
-      return allUploadsSuccessful;
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      return false;
-    } finally {
-      setUploadingImages(false);
-    }
-  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -131,22 +87,23 @@ const AboutSponsorsEditor = () => {
     setError(null);
 
     try {
-      // First, upload any pending images
-      const uploadsSuccessful = await uploadPendingImages();
+      // Prepare the data to send to the server
+      const dataToSave = {
+        ...sponsorsData,
+        // Only send the URLs to the server, not the public IDs
+        logos: sponsorsData.logos.map(logo => ({
+          url: logo.url,
+          publicId: logo.publicId
+        }))
+      };
 
-      if (!uploadsSuccessful) {
-        setError('Some images failed to upload. Please try again.');
-        setSaving(false);
-        return;
-      }
-
-      // Then save the sponsors data
+      // Save the sponsors data
       const response = await fetch('/api/content/about?section=sponsors', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(sponsorsData)
+        body: JSON.stringify(dataToSave)
       });
 
       if (response.ok) {
@@ -255,16 +212,12 @@ const AboutSponsorsEditor = () => {
               {sponsorsData.logos.map((logo, index) => (
                 <div key={index} className="admin-editor__logo-item">
                   <ImageUploader
-                    ref={el => imageUploaderRefs.current[index] = el}
-                    currentImage={logo}
-                    onImageSelect={(file) => handleImageSelect(index, file)}
-                    onImageUpload={(path) => handleLogoChange(index, path)}
-                    folder="sponsor"
+                    currentImage={typeof logo === 'string' ? logo : logo.url}
+                    onImageUpload={(imageUrl) => handleLogoChange(index, imageUrl)}
+                    folder="about/sponsors"
                     label={`Logo ${index + 1}`}
-                    uploadOnSelect={false}
+                    recommendedSize="300x200px"
                     className="admin-editor__logo-uploader"
-                    imageRatio=""
-                    helpText=""
                   />
                   <button
                     type="button"

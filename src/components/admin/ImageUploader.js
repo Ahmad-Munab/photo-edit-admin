@@ -13,7 +13,8 @@ const ImageUploader = ({
   allowUrl = true,
   id = '',
   recommendedSize = '',
-  imageTypes = 'JPEG, PNG, GIF, WEBP'
+  imageTypes = 'JPEG, PNG, GIF, WEBP',
+  oldPublicId = '' // Public ID of the old image to delete when replacing
 }) => {
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState(currentImage || '');
@@ -33,7 +34,14 @@ const ImageUploader = ({
       const formData = new FormData();
       formData.append('file', file);
       formData.append('directory', directory);
-      const response = await fetch(`/api/upload/image?folder=${directory}`, {
+      // Include oldPublicId in the upload request if provided
+      const params = new URLSearchParams();
+      params.append('folder', directory);
+      if (oldPublicId) {
+        params.append('oldPublicId', oldPublicId);
+      }
+
+      const response = await fetch(`/api/upload/image?${params.toString()}`, {
         method: 'POST',
         body: formData
       });

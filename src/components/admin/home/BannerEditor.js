@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import ImageWithFallback from '@/components/admin/ImageWithFallback';
+import ImageUploader from '@/components/admin/common/ImageUploader';
 
 const BannerEditor = ({ data = {}, onChange, preview }) => {
   const [uploadingImage, setUploadingImage] = useState(null);
@@ -23,73 +24,49 @@ const BannerEditor = ({ data = {}, onChange, preview }) => {
     });
   };
 
-  const handleImageChange = async (field, e) => {
+  const handleImageChange = useCallback((field, imageUrl, oldPublicId = '') => {
     if (!onChange) return;
 
-    const file = e.target.files[0];
-    if (!file) return;
+    if (field === 'main') {
+      onChange(prevData => ({
+        ...prevData,
+        images: {
+          ...prevData.images,
+          [field]: imageUrl,
+          // Store the old public ID if we're replacing an image
+          ...(oldPublicId ? { [`${field}PublicId`]: oldPublicId } : {})
+        }
+      }));
+    } else if (field.startsWith('smallImage')) {
+      const index = parseInt(field.replace('smallImage', ''), 10);
+      
+      onChange(prevData => {
+        const newSmallImages = [...(prevData.images.smallImages || [])];
+        newSmallImages[index] = imageUrl;
+        
+        const newSmallImagesPublicIds = [...(prevData.images.smallImagesPublicIds || [])];
+        if (oldPublicId) {
+          newSmallImagesPublicIds[index] = oldPublicId;
+        }
 
-    setUploadingImage(field);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('directory', 'images/banner');
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
+        return {
+          ...prevData,
+          images: {
+            ...prevData.images,
+            smallImages: newSmallImages,
+            ...(oldPublicId ? { smallImagesPublicIds: newSmallImagesPublicIds } : {})
+          }
+        };
       });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed with status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      // Check for filePath property
-      if (!result.filePath) {
-        throw new Error('No file path returned from server');
-      }
-
-      // Add a timestamp to the image URL to force a refresh
-      const imageUrl = `${result.filePath}`;
-
-      if (field === 'main') {
-        // Use functional update to ensure we're working with the latest state
-        onChange(prevData => {
-          return {
-            ...prevData,
-            images: {
-              ...prevData.images,
-              [field]: imageUrl
-            }
-          };
-        });
-      } else if (field.startsWith('smallImage')) {
-        const index = parseInt(field.replace('smallImage', ''), 10);
-
-        // Use functional update to ensure we're working with the latest state
-        onChange(prevData => {
-          const newSmallImages = [...prevData.images.smallImages];
-          newSmallImages[index] = imageUrl;
-
-          return {
-            ...prevData,
-            images: {
-              ...prevData.images,
-              smallImages: newSmallImages
-            }
-          };
-        });
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      console.error('Error details:', error.message);
-      alert(`Failed to upload image: ${error.message}. Please try again.`);
-    } finally {
-      setUploadingImage(null);
     }
+  }, [onChange]);
+
+  // Extract public ID from a Cloudinary URL
+  const getPublicIdFromUrl = (url) => {
+    if (!url) return '';
+    // Extract public ID from Cloudinary URL format
+    const matches = url.match(/upload\/v\d+\/([^\/]+)\./);
+    return matches ? matches[1] : '';
   };
 
   if (preview) {
@@ -172,13 +149,14 @@ const BannerEditor = ({ data = {}, onChange, preview }) => {
             )}
           </div>
           <div className="banner-editor__image-upload">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageChange('main', e)}
-              className="form-control-file"
+            <ImageUploader
+              currentImage={editorData.images?.main}
+              onImageUpload={(url) => handleImageChange('main', url, getPublicIdFromUrl(editorData.images?.main))}
+              folder="home/banner"
+              label="Main Banner Image"
+              recommendedSize="1920x1080px"
+              className="banner-editor__image-uploader"
             />
-            {uploadingImage === 'main' && <span>Uploading...</span>}
           </div>
           <div className="banner-editor__image-help">
             <p className="banner-editor__help-text">
@@ -207,13 +185,14 @@ const BannerEditor = ({ data = {}, onChange, preview }) => {
                 />
               </div>
               <div className="banner-editor__image-upload">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageChange(`smallImage${index}`, e)}
-                  className="form-control-file"
+                <ImageUploader
+                  currentImage={img}
+                  onImageUpload={(url) => handleImageChange(`smallImage${index}`, url, getPublicIdFromUrl(img))}
+                  folder="home/banner"
+                  label={`Small Banner Image ${index + 1}`}
+                  recommendedSize="400x400px"
+                  className="banner-editor__image-uploader"
                 />
-                {uploadingImage === `smallImage${index}` && <span>Uploading...</span>}
               </div>
               <div className="banner-editor__image-help">
                 <p className="banner-editor__help-text">

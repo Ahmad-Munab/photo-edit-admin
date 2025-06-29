@@ -30,6 +30,7 @@ const ImageUploader = forwardRef(({
   uploadOnSelect = false,
   imageRatio = '',
   helpText = '',
+  oldPublicId = '', // Public ID of the old image to delete when replacing
 }, ref) => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -75,7 +76,15 @@ const ImageUploader = forwardRef(({
       const formData = new FormData();
       formData.append('file', file);
       formData.append('directory', `images/${folder}`);
-      const response = await fetch('/api/upload/image?folder=' + folder, {
+      
+      // Include oldPublicId in the upload request if provided
+      const params = new URLSearchParams();
+      params.append('folder', folder);
+      if (oldPublicId) {
+        params.append('oldPublicId', oldPublicId);
+      }
+
+      const response = await fetch(`/api/upload/image?${params.toString()}`, {
         method: 'POST',
         body: formData,
       });
@@ -100,7 +109,7 @@ const ImageUploader = forwardRef(({
       if (fileInputRef.current) fileInputRef.current.value = '';
       setTimeout(() => setProgress(0), 1000);
     }
-  }, [selectedFile, folder, currentImage, placeholderImage, onImageUpload]);
+  }, [selectedFile, folder, currentImage, placeholderImage, onImageUpload, oldPublicId]);
 
   React.useImperativeHandle(ref, () => ({
     uploadImage: () => uploadImage(selectedFile),

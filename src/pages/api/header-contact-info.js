@@ -1,4 +1,4 @@
-import { getConfig } from "@/utils/configManager";
+import configManager from "@/utils/configManager";
 
 export default async function handler(req, res) {
   // Only allow GET requests
@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
   try {
     // Get the contact info data from the database using the config manager
-    const contactInfo = await getConfig("contact-info");
+    const contactInfo = await configManager.getConfig("contact-info");
     if (!contactInfo || Object.keys(contactInfo).length === 0) {
       return res.status(200).json({});
     }

@@ -1,7 +1,7 @@
 // src/utils/configManager.js
 // DatabaseConfigManager for managing JSON configs in PostgreSQL with caching
 
-const { Pool } = require("pg");
+import { Pool } from 'pg';
 
 class DatabaseConfigManager {
   constructor() {
@@ -205,4 +205,6 @@ class DatabaseConfigManager {
   }
 }
 
-module.exports = new DatabaseConfigManager();
+const configManager = new DatabaseConfigManager();
+
+export default configManager;

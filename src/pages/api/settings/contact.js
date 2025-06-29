@@ -1,4 +1,4 @@
-import { getConfig, setConfig } from "@/utils/configManager";
+import configManager from "@/utils/configManager";
 
 // Default contact information
 const DEFAULT_CONTACT_INFO = {
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
       // If contact info doesn't exist, use the default data
       if (!settings.contact || Object.keys(settings.contact).length === 0) {
         settings.contact = DEFAULT_CONTACT_INFO;
-        await setConfig("settings", settings);
+        await configManager.saveConfig("settings", settings);
       }
 
       return res.status(200).json(settings.contact || DEFAULT_CONTACT_INFO);
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
         ...updatedContactInfo,
       };
 
-      const success = await setConfig("settings", settings);
+      const success = await configManager.saveConfig("settings", settings);
 
       if (!success) {
         return res

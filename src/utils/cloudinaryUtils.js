@@ -13,13 +13,33 @@ cloudinary.config({
  * @param {Object} options - Upload options
  * @returns {Promise<Object>} Cloudinary upload result
  */
+/**
+ * Upload image to Cloudinary with optional deletion of old image
+ * @param {Buffer|string} fileBuffer - The file buffer or base64 string
+ * @param {Object} options - Upload options
+ * @param {string} [options.oldPublicId] - Public ID of the old image to delete
+ * @param {string} [options.folder="photodit"] - Folder to upload the image to
+ * @returns {Promise<Object>} Cloudinary upload result
+ */
 export async function uploadToCloudinary(fileBuffer, options = {}) {
   try {
+    const { oldPublicId, ...uploadOptions } = options;
+    
+    // If there's an old public ID, delete that image first
+    if (oldPublicId) {
+      try {
+        await deleteFromCloudinary(oldPublicId);
+      } catch (error) {
+        console.warn('Failed to delete old image:', error);
+        // Continue with upload even if deletion fails
+      }
+    }
+
     const defaultOptions = {
       resource_type: "image",
-      folder: options.folder || "photodit",
+      folder: uploadOptions.folder || "photodit",
       transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
-      ...options,
+      ...uploadOptions,
     };
 
     return new Promise((resolve, reject) => {
@@ -35,7 +55,7 @@ export async function uploadToCloudinary(fileBuffer, options = {}) {
         .end(fileBuffer);
     });
   } catch (error) {
-    console.error("Error uploading to Cloudinary:", error);
+    console.error("Error in uploadToCloudinary:", error);
     throw error;
   }
 }
