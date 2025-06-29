@@ -170,6 +170,7 @@ const CustomQuote = ({ gallery, form }: CustomQuoteProps) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     service: "Our Services",
     fileOptions: {
       jpg: false,
@@ -226,6 +227,8 @@ const CustomQuote = ({ gallery, form }: CustomQuoteProps) => {
           ? "name"
           : name === "trial-email"
           ? "email"
+          : name === "phone"
+          ? "phone"
           : name === "select-services"
           ? "service"
           : name === "trial-message"
@@ -361,6 +364,7 @@ const CustomQuote = ({ gallery, form }: CustomQuoteProps) => {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
+          phone: formData.phone || "",
           service: formData.service,
           fileOptions: fileOptionsString,
           message: formData.message,
@@ -380,6 +384,7 @@ const CustomQuote = ({ gallery, form }: CustomQuoteProps) => {
         setFormData({
           name: "",
           email: "",
+          phone: "",
           service: "Our Services",
           fileOptions: {
             jpg: false,
@@ -875,6 +880,8 @@ const CustomQuote = ({ gallery, form }: CustomQuoteProps) => {
                             ? "trial-name"
                             : field.id === "email"
                             ? "trial-email"
+                            : field.id === "phone"
+                            ? "phone"
                             : field.id
                         }
                         id={field.id}
@@ -885,6 +892,8 @@ const CustomQuote = ({ gallery, form }: CustomQuoteProps) => {
                             ? formData.name
                             : field.id === "email"
                             ? formData.email
+                            : field.id === "phone"
+                            ? formData.phone
                             : ""
                         }
                         onChange={handleChange}

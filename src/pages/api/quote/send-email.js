@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
-import { getData } from "@/utils/dataUtils";
+import { getData, uploadImageAndSaveMetadata } from "@/utils/dataUtils";
+import { getAdminEmail } from "@/utils/emailUtils";
+import { v4 as uuidv4 } from "uuid";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -7,8 +9,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get email settings from the settings data
-    const settings = getData("settings") || {};
+    // Get admin email and settings
+    const [adminEmail, settings] = await Promise.all([
+      getAdminEmail(),
+      getData("settings") || {},
+    ]);
+    
     const emailSettings = settings.email || {};
 
     // Extract form data
@@ -21,6 +27,22 @@ export default async function handler(req, res) {
       uploadedFile,
       cloudLink,
     } = req.body;
+
+    // Handle file upload if present
+    let fileMetadata = null;
+    if (req.files && req.files.file) {
+      const file = req.files.file;
+      const fileExt = file.originalname.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      
+      // Upload to Cloudinary and save metadata
+      fileMetadata = await uploadImageAndSaveMetadata(file.buffer, {
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        folder: 'quote-requests',
+      });
+    }
 
     // Format file options for email
     let fileOptionsText = "";
@@ -43,22 +65,32 @@ export default async function handler(req, res) {
         fileOptionsText || "None selected"
       }</p>
       <p><strong>Message:</strong> ${message || "No message provided"}</p>
-      <p><strong>Uploaded File:</strong> ${
-        uploadedFile
-          ? `${req.headers.origin}${uploadedFile}`
-          : "No file uploaded"
-      }</p>
-      <p><strong>Cloud Link:</strong> ${cloudLink || "No link provided"}</p>
+      ${
+        fileMetadata
+          ? `<p><strong>Uploaded File:</strong> <a href="${fileMetadata.cloudinaryUrl}">${fileMetadata.originalName}</a> (${(fileMetadata.fileSize / 1024).toFixed(2)} KB)</p>`
+          : "<p><strong>Uploaded File:</strong> No file uploaded</p>"
+      }
+      ${
+        cloudLink
+          ? `<p><strong>Cloud Link:</strong> <a href="${cloudLink}">${cloudLink}</a></p>`
+          : "<p><strong>Cloud Link:</strong> No link provided</p>"
+      }
+      <p><strong>Submitted At:</strong> ${new Date().toLocaleString()}</p>
+      
+      <hr>
+      <p>You can view and manage this quote request in the admin panel.</p>
     `;
 
-    // For development, just log the email content instead of sending
-    console.log("Quote request received:");
-    console.log(`From: ${name} (${email})`);
-    console.log(`Service: ${service}`);
-    console.log(`File Options: ${fileOptionsText || "None selected"}`);
-    console.log(`Message: ${message || "No message provided"}`);
-    console.log(`Uploaded File: ${uploadedFile || "None"}`);
-    console.log(`Cloud Link: ${cloudLink || "None"}`);
+    // Log the request details for debugging
+    console.log("Quote request received:", {
+      from: `${name} <${email}>`,
+      service,
+      fileOptions: fileOptionsText || "None selected",
+      message: message ? "[Provided]" : "No message",
+      hasUploadedFile: !!fileMetadata,
+      cloudLink: cloudLink || "None",
+      timestamp: new Date().toISOString()
+    });
 
     // Save the quote request to database
     try {
@@ -69,8 +101,15 @@ export default async function handler(req, res) {
         service,
         fileOptions: fileOptionsText,
         message,
-        uploadedFile,
+        uploadedFile: fileMetadata ? {
+          url: fileMetadata.cloudinaryUrl,
+          name: fileMetadata.originalName,
+          size: fileMetadata.fileSize,
+          publicId: fileMetadata.cloudinaryPublicId
+        } : null,
         cloudLink,
+        status: 'new',
+        createdAt: new Date().toISOString()
       });
       console.log("Quote request saved to database successfully");
     } catch (dbError) {
@@ -93,16 +132,12 @@ export default async function handler(req, res) {
     const emailSecure =
       process.env.EMAIL_SECURE === "true" || emailSettings.emailSecure === true;
     const emailFrom =
-      process.env.EMAIL_FROM || emailSettings.emailFrom || emailUser;
+      process.env.EMAIL_FROM || emailSettings.emailFrom || emailUser || adminEmail;
 
-    // Make sure we're using the correct recipient email - prioritize the admin email from settings
-    const emailTo =
-      emailSettings.adminEmail ||
-      process.env.EMAIL_USER ||
-      settings.contact?.email ||
-      "admin@photodit.com";
+    // Use the admin email from our utility function
+    const emailTo = adminEmail;
 
-    console.log("Using admin email:", emailTo);
+    console.log("Sending quote request to:", emailTo);
 
     // Check if we have the minimum required settings to send an email
     if (emailHost && emailUser && emailPass) {
