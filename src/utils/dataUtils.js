@@ -32,16 +32,41 @@ export async function getData(key) {
  * @returns {Promise<boolean>} True if successful, false otherwise
  */
 export async function saveData(key, data) {
+  console.log(`Saving data for key: ${key}`, { data });
+  
   try {
-    await query(
+    // Ensure data is a proper object
+    if (!data || typeof data !== 'object') {
+      throw new Error(`Invalid data type: ${typeof data}. Expected object.`);
+    }
+    
+    // Stringify the data for storage
+    const jsonData = JSON.stringify(data);
+    
+    console.log('Executing database query...');
+    const result = await query(
       `INSERT INTO json_configs (config_key, config_data, last_updated)
        VALUES ($1, $2, CURRENT_TIMESTAMP)
-       ON CONFLICT (config_key) DO UPDATE SET config_data = EXCLUDED.config_data, last_updated = CURRENT_TIMESTAMP`,
+       ON CONFLICT (config_key) 
+       DO UPDATE SET 
+         config_data = EXCLUDED.config_data, 
+         last_updated = CURRENT_TIMESTAMP
+       RETURNING config_key`,
       [key, data]
     );
+    
+    if (!result || !result.rows || result.rows.length === 0) {
+      throw new Error('No rows returned from database after save');
+    }
+    
+    console.log(`Successfully saved data for key: ${key}`);
     return true;
   } catch (error) {
-    console.error(`Error saving data for ${key}:`, error);
+    console.error(`Error saving data for ${key}:`, {
+      message: error.message,
+      stack: error.stack,
+      data: JSON.stringify(data, null, 2).substring(0, 500) // Log first 500 chars of data
+    });
     return false;
   }
 }

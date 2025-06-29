@@ -302,26 +302,85 @@ export default async function handler(req, res) {
     }
   }
   if (req.method === "PUT") {
+    console.log('PUT request received:', { 
+      query: req.query, 
+      body: JSON.parse(JSON.stringify(req.body)) // Create a clean copy for logging
+    });
+    
     try {
       const { section } = req.query;
       const updatedData = req.body;
-      if (section) {
-        // Update only the specified section
-        let data = (await getData("home")) || {};
-        data[section] = updatedData;
-        const success = await saveData("home", data);
-        if (!success) {
-          return res.status(500).json({ message: "Failed to save home data" });
-        }
-        return res.status(200).json({ message: `Home section '${section}' updated successfully`, data: data[section] });
-      } else {
-        // Update the entire home object
-        const success = await saveData("home", updatedData);
-        if (!success) {
-          return res.status(500).json({ message: "Failed to save home data" });
-        }
-        return res.status(200).json({ message: "Home data updated successfully", data: updatedData });
+      
+      if (!section) {
+        console.log('No section specified in query');
+        return res.status(400).json({ message: "Section parameter is required" });
       }
+      
+      // Get existing data
+      let data = {};
+      try {
+        data = (await getData("home")) || {};
+        console.log('Existing data loaded:', JSON.stringify(data, null, 2));
+      } catch (dbError) {
+        console.error('Error loading existing data:', dbError);
+        return res.status(500).json({ 
+          message: "Failed to load existing data",
+          error: dbError.message 
+        });
+      }
+      
+      // If this is the banner section, ensure we maintain the proper structure
+      if (section === 'banner') {
+        console.log('Processing banner section update');
+        
+        // Ensure images object exists
+        updatedData.images = updatedData.images || {};
+        console.log('Updated images object:', updatedData.images);
+        
+        // Ensure smallImages is an array with 4 items
+        if (!Array.isArray(updatedData.images.smallImages)) {
+          console.log('Initializing smallImages array');
+          updatedData.images.smallImages = Array(4).fill('');
+        }
+        
+        // Ensure smallImagesPublicIds exists if we have public IDs
+        if ((updatedData.images.mainPublicId || updatedData.images.smallImagesPublicIds) && 
+            !Array.isArray(updatedData.images.smallImagesPublicIds)) {
+          console.log('Initializing smallImagesPublicIds array');
+          updatedData.images.smallImagesPublicIds = Array(4).fill('');
+        }
+        
+        console.log('Processed banner data:', JSON.stringify(updatedData, null, 2));
+      }
+      
+      // Update only the specified section
+      console.log(`Updating section '${section}'`);
+      data[section] = updatedData;
+      
+      // Save the updated data
+      console.log('Saving updated data...');
+      const success = await saveData("home", data);
+      
+      if (!success) {
+        console.error('Failed to save data to database');
+        return res.status(500).json({ 
+          message: "Failed to save home data to database" 
+        });
+      }
+      
+      console.log('Data saved successfully');
+      
+      // Return the updated section data
+      const responseData = { 
+        message: `Home section '${section}' updated successfully`, 
+        data: data[section] 
+      };
+      
+      console.log('Sending response:', responseData);
+      return res.status(200).json(responseData);
+      
+      // Note: Removed the else block since we're now handling section updates only
+      // and the section check is done at the beginning of the function
     } catch (error) {
       console.error("Error updating home data:", error);
       return res.status(500).json({ message: "Internal server error" });
