@@ -7,21 +7,22 @@ import { GetServerSideProps } from "next";
 // This gets called on every request
 export const getServerSideProps: GetServerSideProps = async () => {
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     // Fetch contact page data from API
     const contactResponse = await fetch(
-      `/api/content/contact`
+      `${baseUrl}/api/content/contact`
     );
     const contactData = await contactResponse.json();
 
     // Fetch contact info data from API
     const contactInfoResponse = await fetch(
-      `/api/content/contact-info`
+      `${baseUrl}/api/content/contact-info`
     );
     const contactInfo = await contactInfoResponse.json();
 
     // Fetch settings data
     const settingsResponse = await fetch(
-      `/api/content/settings`
+      `${baseUrl}/api/content/settings`
     );
     const settings = await settingsResponse.json();
 

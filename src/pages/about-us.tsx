@@ -13,28 +13,29 @@ import { GetServerSideProps } from "next";
 // This gets called on every request
 export const getServerSideProps: GetServerSideProps = async () => {
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     // Fetch about page data
     const aboutResponse = await fetch(
-      `/api/content/about`
+      `${baseUrl}/api/content/about`
     );
     const aboutData = await aboutResponse.json();
 
     // Fetch testimonials data
     const services = await fetch(
-      `/api/content/services`
+      `${baseUrl}/api/content/services`
     );
     const servicesData = await services.json();
     const testimonials = servicesData.testimonials;
 
     // Fetch settings data
     const settingsResponse = await fetch(
-      `/api/content/settings`
+      `${baseUrl}/api/content/settings`
     );
     const settings = await settingsResponse.json();
 
     // Fetch portfolio data
     const portfolioResponse = await fetch(
-      `/api/content/portfolio`
+      `${baseUrl}/api/content/portfolio`
     );
     const portfolio = await portfolioResponse.json();
 

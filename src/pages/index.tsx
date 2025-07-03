@@ -15,18 +15,19 @@ import { GetServerSideProps } from "next";
 
 export const getServerSideProps: GetServerSideProps = async () => {
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     const homeResponse = await fetch(
-      `/api/content/home`
+      `${baseUrl}/api/content/home`
     );
     const homeData = await homeResponse.json();
 
     const newsResponse = await fetch(
-      `/api/content/news`
+      `${baseUrl}/api/content/news`
     );
     const newsData = await newsResponse.json();
 
     const servicesResponse = await fetch(
-      `/api/content/services`
+      `${baseUrl}/api/content/services`
     );
     const servicesData = await servicesResponse.json();
 
@@ -45,18 +46,18 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }
 
     const pricingResponse = await fetch(
-      `/api/content/pricing?section=main`
+      `${baseUrl}/api/content/pricing?section=main`
     );
     const pricingData = await pricingResponse.json();
 
     const settingsResponse = await fetch(
-      `/api/settings`
+      `${baseUrl}/api/settings`
     );
     const settingsData = await settingsResponse.json();
 
     // Fetch sponsors data from about.json
     const aboutResponse = await fetch(
-      `/api/content/about?section=sponsors`
+      `${baseUrl}/api/content/about?section=sponsors`
     );
     const sponsorsData = await aboutResponse.json();
 

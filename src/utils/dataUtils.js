@@ -52,7 +52,7 @@ export async function saveData(key, data) {
          config_data = EXCLUDED.config_data, 
          last_updated = CURRENT_TIMESTAMP
        RETURNING config_key`,
-      [key, data]
+      [key, jsonData]
     );
     
     if (!result || !result.rows || result.rows.length === 0) {
