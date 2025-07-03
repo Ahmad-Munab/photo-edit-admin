@@ -73,9 +73,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
   try {
     // Fetch pricing data from API
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/pricing`
+      `/api/content/pricing`
     );
     const pricingData = await response.json();
 

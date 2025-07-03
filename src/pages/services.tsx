@@ -13,17 +13,13 @@ export const getServerSideProps: GetServerSideProps = async () => {
   try {
     // Fetch services data from API
     const servicesResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/services`
+      `/api/content/services`
     );
     const servicesData = await servicesResponse.json();
 
     // Fetch pricing data from the services API to ensure we have the latest
     const pricingResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/services?section=pricing`
+      `/api/content/services?section=pricing`
     );
     if (pricingResponse.ok) {
       const pricingData = await pricingResponse.json();
@@ -34,9 +30,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
     // Fetch settings data
     const settingsResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/settings`
+      `/api/content/settings`
     );
     const settings = await settingsResponse.json();
 

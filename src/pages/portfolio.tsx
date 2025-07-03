@@ -50,9 +50,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
   // Fetch sponsors data from about.json
   try {
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/about?section=sponsors`
+      `/api/content/about?section=sponsors`
     );
     const sponsorsData = await response.json();
 

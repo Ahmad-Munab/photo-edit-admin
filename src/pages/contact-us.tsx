@@ -9,25 +9,19 @@ export const getServerSideProps: GetServerSideProps = async () => {
   try {
     // Fetch contact page data from API
     const contactResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/contact`
+      `/api/content/contact`
     );
     const contactData = await contactResponse.json();
 
     // Fetch contact info data from API
     const contactInfoResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/contact-info`
+      `/api/content/contact-info`
     );
     const contactInfo = await contactInfoResponse.json();
 
     // Fetch settings data
     const settingsResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/settings`
+      `/api/content/settings`
     );
     const settings = await settingsResponse.json();
 

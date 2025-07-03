@@ -15,34 +15,26 @@ export const getServerSideProps: GetServerSideProps = async () => {
   try {
     // Fetch about page data
     const aboutResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/about`
+      `/api/content/about`
     );
     const aboutData = await aboutResponse.json();
 
     // Fetch testimonials data
     const services = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/services`
+      `/api/content/services`
     );
     const servicesData = await services.json();
     const testimonials = servicesData.testimonials;
 
     // Fetch settings data
     const settingsResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/settings`
+      `/api/content/settings`
     );
     const settings = await settingsResponse.json();
 
     // Fetch portfolio data
     const portfolioResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/portfolio`
+      `/api/content/portfolio`
     );
     const portfolio = await portfolioResponse.json();
 

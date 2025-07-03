@@ -16,23 +16,17 @@ import { GetServerSideProps } from "next";
 export const getServerSideProps: GetServerSideProps = async () => {
   try {
     const homeResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/home`
+      `/api/content/home`
     );
     const homeData = await homeResponse.json();
 
     const newsResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/news`
+      `/api/content/news`
     );
     const newsData = await newsResponse.json();
 
     const servicesResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/services`
+      `/api/content/services`
     );
     const servicesData = await servicesResponse.json();
 
@@ -51,24 +45,18 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }
 
     const pricingResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/pricing?section=main`
+      `/api/content/pricing?section=main`
     );
     const pricingData = await pricingResponse.json();
 
     const settingsResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/settings`
+      `/api/settings`
     );
     const settingsData = await settingsResponse.json();
 
     // Fetch sponsors data from about.json
     const aboutResponse = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/content/about?section=sponsors`
+      `/api/content/about?section=sponsors`
     );
     const sponsorsData = await aboutResponse.json();
 
