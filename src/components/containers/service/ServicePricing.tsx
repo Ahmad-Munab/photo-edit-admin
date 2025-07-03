@@ -214,7 +214,7 @@ const ServicePricing: React.FC<ServicePricingProps> = ({ data }) => {
           </div>
         ) : (
           <div className="row gaper">
-            {pricingData.plans &&
+            {pricingData?.plans &&
               pricingData.plans.map((plan, index) => {
                 // Support both naming conventions (title/name and popular/recommended)
                 const planTitle = plan.title || plan.name || "";

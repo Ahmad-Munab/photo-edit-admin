@@ -26,7 +26,7 @@ interface PricingMainProps {
 }
 
 const PricingMain = ({ data }: PricingMainProps) => {
-  const plans = data.plans;
+  const plans = data?.plans || [];
   return (
     <section className="section pricing-main">
       <div className="container">
